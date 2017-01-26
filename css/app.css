@@ -35,6 +35,10 @@ tr:hover {
 	text-shadow: #552100 3px 3px 5px;
 }
 
+tr:hover:first-child {
+	text-shadow: none;
+}
+
 tr:nth-child(2n) {
 	background-color: #b66b3d;
 }

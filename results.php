@@ -104,6 +104,9 @@ foreach (array('hide_clones','reverse_order') as $checkbox) {
 	if (is_numeric($_SESSION['to_year']))
 		array_push($where,"games.year <= '".sqlite_escape_string($_SESSION['to_year'])."'");
 
+	// only runnables
+	array_push($where,"games.runnable = '1'");
+
 	// join where clause
 	$where = join(' AND ',$where);
 	$where = $where ? " WHERE $where" : '';
@@ -127,17 +130,14 @@ EOT;
 
 	$sql = preg_replace('/ +LIMIT +\d+ *, *\d+ *$/i','',$sql);
 ?>
-	<theader>
-		<tr>
-			<th>Icon</th>
-			<th>Name</th>
-			<th>Description</th>
-			<th>Year</th>
-			<th>Manufacturer</th>
-			<th>Clone of</th>
-		</tr>
-	</theader>
-	<tbody>
+	<tr>
+		<th>Icon</th>
+		<th>Name</th>
+		<th>Description</th>
+		<th>Year</th>
+		<th>Manufacturer</th>
+		<th>Clone of</th>
+	</tr>
 <?php
 		$sql_count = preg_replace('/^ *SELECT\s+.+\s+FROM\s+/i','SELECT count(*) as nb_rows FROM ',$sql);
 		$sql_count = preg_replace('/ *ORDER\s+BY\s+.+\s+(?:ASC|DESC)/i',' ',$sql_count);
@@ -163,7 +163,6 @@ EOT;
 				<td><?=$row['cloneof']?></td>
 			</tr>
 <?php	} // end while for each rom ?>
-	</tbody>
 </table>
 
 <div class="pagination">
