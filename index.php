@@ -5,6 +5,8 @@ include_once('inc/config.php');
 include_once('inc/functions.php');
 $database = load_database();
 
+session_start();
+
 if (isset($_GET['name']) && $_GET['name']) {
 	$game_name = $_GET['name'];
 } else {
@@ -19,191 +21,31 @@ $game_name_escape = sqlite_escape_string($game_name);
 // extract game info
 $fields = array('description'=>'VARCHAR','name'=>'VARCHAR','manufacturer'=>'VARCHAR','year'=>'INTEGER','runnable'=>'BOOL','sourcefile'=>'VARCHAR');
 $res = $database->query("SELECT ".join(',',array_keys($fields)).",cloneof FROM games WHERE name='$game_name_escape'") or die("Unable to query database : ".array_pop($database->errorInfo()));
-$row = $res->fetch(PDO::FETCH_ASSOC);
+$row_game = $res->fetch(PDO::FETCH_ASSOC);
 
 ?><html>
 <head>
-<title>Mame game : <?=$row['name']?> : <?=$row['description']?></title>
-<style>
-
-body {
-	background-color:#336699;
-	font-family:Courier;
-	font-size:15px;
-}
-
-h1 {
-	margin:0px;
-	color:white;
-}
-
-h2 {
-	margin:0;
-	font-size:15px;
-	background-color:white;
-	border:solid 1px black;
-	width:12em;
-	padding:3px;
-	position:relative;
-	top:-15px;
-}
-
-h2 a {
-	color:#336699;
-}
-
-#summary {
-	margin-bottom:2em;
-	list-style-type:square;
-	color:white;
-	width:30%;
-	float:left;
-}
-
-a {
-	color:#99ffff;
-}
-
-table {
-	border-spacing: 5px;
-	/*border-collapse: collapse; */
-}
-
-th {
-	color:white;
-}
-
-th:nth-child(2n) {
-	color:#bbb;
-}
-
-td:nth-child(2n) {
-	color:#bbb;
-}
-
-
-td  {
-	font-size:0.8em;
-	vertical-align:top;
-}
-
-.infos {
-	border:solid 1px black;
-	padding:3px;
-	display:table;
-	width:90%;
-	margin-bottom:20px;
-}
-
-.info {
-	display: table-row;
-}
-
-.sousinfo {
-	border:solid 1px black;
-	margin-bottom:2px;
-}
-
-.labels {
-	color:White;
-	font-weight:bold;
-	width:20%;
-	white-space: nowrap;
-	text-align:right;
-
-}
-
-.row {
-	display: table-cell;
-}
-
-.labels:after {
-	content:" : ";
-}
-
-.values {
-	font-weight:normal;
-	display: table-cell;
-	white-space: nowrap;
-}
-
-li.this-one {
-	color:white;
-}
-
-.hide {
-	display:none;
-}
-
-#mameinfo_info,#stories_info,#dipswitch_info {
-	font-size:0.8em;
-}
-
-#media {
-	float:left;
-	margin-left:1em;
-}
-
-
-.media {
-<?php
-	// find width and height of screenshot
-	$res2 = $database->query("SELECT width,height,rotate FROM games_display WHERE game='$game_name_escape' LIMIT 0,1") or die("Unable to query database : ".array_pop($database->errorInfo()));
-	$row2 = $res2->fetch(PDO::FETCH_ASSOC);
-	$img_width	= 0;
-	$img_height = 0;
-	if (($row2['rotate'] / 90) & 1) { // impaire
-		$img_width	= $row2['height'];
-		$img_height = $row2['width'];
-	} else { // paire
-		$img_width	= $row2['width'];
-		$img_height = $row2['height'];		
-	}
-?>
-	max-height:380px;
-	max-width:<?=$img_width?>px;
-}
-
-#icon {
-	background-color:white;
-	border:solid 1px black;
-	margin-right:1em;
-	padding:2px;
-}
-
-#media {
-	display:table-row;
-}
-
-#media ul {
-	display:table-cell;
-	list-style:square;
-}
-
-#media li {
-	cursor:pointer;
-	color:#99ffff;
-	text-decoration:underline;
-}
-
-#snapshot {
-	display:table-cell;
-	padding-left:2em;
-	color:white;
-}
-
-
-</style>
+<title>Mame game : <?=$row_game['name']?> : <?=$row_game['description']?></title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso8859-1">
+<link rel="stylesheet" href="css/font-awesome.min.css">
+<link rel="stylesheet" href="css/bootstrap.css">
+<link rel="stylesheet" type="text/css" href="css/app.css">
+<link rel="stylesheet" type="text/css" href="css/search-bar.css">
+<link rel="stylesheet" type="text/css" href="css/game.css">
 <script type="text/javascript" src="js/jquery.js"></script>
+<script type="text/javascript" src="js/app.js"></script>
 <script type="text/javascript" src="js/jquery.lightbox.js"></script>
 <link rel="stylesheet" type="text/css" href="css/jquery.lightbox.css" media="screen" />
 </head>
 <body>
+
+<? include_once('search_bar.php'); ?>
+
 <h1>
 	<?php	if (file_exists(MEDIA_PATH."/icons/$game_name.ico")) { ?>
 				<img src="<?=MEDIA_PATH?>/icons/<?=$game_name?>.ico" id="icon"/>
 	<?php	} ?>
-	<?=$row['description']?>
+	<?=$row_game['description']?>
 </h1>
 
 <!-- SUMMARY -->
@@ -299,20 +141,20 @@ $(document).ready(function(){
 <h2><a name="game_info">Game infos</a></h2>
 <?php
 $cloneof = '';
-if ($row['cloneof'])
-	$cloneof = $row['cloneof'];
+if ($row_game['cloneof'])
+	$cloneof = $row_game['cloneof'];
 
 
 $search_info = array('manufacturer','year','sourcefile');
 foreach ($fields as $field_name => $field_type) {
-	if ($row[$field_name] != '') { // si qqchose a afficher ?>
+	if ($row_game[$field_name] != '') { // si qqchose a afficher ?>
 		<div id="game_<?=$field_name?>" class="info">
 			<span class="labels row"><?=ucfirst($field_name)?></span>
 			<span class="values">
 <?php			if (in_array($field_name,$search_info)) { // if search criteria ?>
-					<a href="search.php?<?=$field_name?>=<?=$row[$field_name]?>"><?=$fields[$field_name]=='BOOL' ? bool2yesno($row[$field_name]) : $row[$field_name] ?></a>
+					<a href="search.php?<?=$field_name?>=<?=$row_game[$field_name]?>"><?=$fields[$field_name]=='BOOL' ? bool2yesno($row_game[$field_name]) : $row_game[$field_name] ?></a>
 <?php			} else { ?>
-					<?=$fields[$field_name]=='BOOL' ? bool2yesno($row[$field_name]) : $row[$field_name] ?>
+					<?=$fields[$field_name]=='BOOL' ? bool2yesno($row_game[$field_name]) : $row_game[$field_name] ?>
 <?php			} ?>
 			</span>
 		</div>
@@ -460,15 +302,11 @@ foreach ($fields as $field_name => $field_type) { ?>
 // table rows
 while($row = $res->fetch(PDO::FETCH_ASSOC)) { ?>
 		<tr>
-<?php
-	foreach ($fields as $field_name => $field_type) {
-?>
-		<td><?= $fields[$field_name] == 'BOOL' ? bool2yesno($row[$field_name]) : $row[$field_name] ?></td>
-<?php
-	} ?>
-		</tr>
-<?php
-} ?>
+	<?php foreach ($fields as $field_name => $field_type) { ?>
+			<td><?= $fields[$field_name] == 'BOOL' ? bool2yesno($row[$field_name]) : $row[$field_name] ?></td>
+	<?php } ?>
+			</tr>
+<?php } ?>
 	</tbody>
 </table>
 </div>
@@ -497,15 +335,11 @@ foreach ($fields as $field_name => $field_type) { ?>
 // table rows
 while($row = $res->fetch(PDO::FETCH_ASSOC)) { ?>
 		<tr>
-<?php
-	foreach ($fields as $field_name => $field_type) {
-?>
-		<td><?= $fields[$field_name] == 'BOOL' ? bool2yesno($row[$field_name]) : $row[$field_name] ?></td>
-<?php
-	} ?>
+			<?php foreach ($fields as $field_name => $field_type) { ?>
+					<td><?= $fields[$field_name] == 'BOOL' ? bool2yesno($row[$field_name]) : $row[$field_name] ?></td>
+			<?php } ?>
 		</tr>
-<?php
-} ?>
+<?php } ?>
 	</tbody>
 </table>
 </div>
@@ -565,8 +399,6 @@ while($row = $res->fetch(PDO::FETCH_ASSOC)) { ?>
 </div>
 
 
-
-
 <!-- DIPSWITCH INFO -->
 <?php
 $res = $database->query("SELECT * FROM games_dipswitch WHERE game='$game_name_escape'") or die("Unable to query database : ".array_pop($database->errorInfo()));
@@ -590,8 +422,6 @@ $res = $database->query("SELECT * FROM games_dipswitch WHERE game='$game_name_es
 
 
 
-
-
 <!-- ADJUSTER INFO -->
 <?php
 $fields = get_fields_info('games_adjuster');
@@ -602,9 +432,7 @@ $res = $database->query("SELECT * FROM games_adjuster WHERE game='$game_name_esc
 <table>
 	<thead>
 		<tr>
-<?php
-// table header
-foreach ($fields as $field_name => $field_type) { ?>
+<?php foreach ($fields as $field_name => $field_type) { ?>
 			<th><?=$field_name?></th>
 <?php } ?>
 		</tr>
@@ -614,20 +442,14 @@ foreach ($fields as $field_name => $field_type) { ?>
 // table rows
 while($row = $res->fetch(PDO::FETCH_ASSOC)) { ?>
 		<tr>
-<?php
-	foreach ($fields as $field_name => $field_type) {
-?>
-		<td><?= $fields[$field_name] == 'BOOL' ? bool2yesno($row[$field_name]) : $row[$field_name] ?></td>
-<?php
-	} ?>
-		</tr>
-<?php
-} ?>
+		<?php foreach ($fields as $field_name => $field_type) { ?>
+				<td><?= $fields[$field_name] == 'BOOL' ? bool2yesno($row[$field_name]) : $row[$field_name] ?></td>
+		<?php } ?>
+				</tr>
+<?php } ?>
 	</tbody>
 </table>
 </div>
-
-
 
 
 <!-- ROM LIST -->
@@ -652,19 +474,14 @@ foreach ($fields as $field_name => $field_type) { ?>
 // table rows
 while($row = $res->fetch(PDO::FETCH_ASSOC)) { ?>
 		<tr>
-<?php
-	foreach ($fields as $field_name => $field_type) {
-?>
-		<td><?= $fields[$field_name] == 'BOOL' ? bool2yesno($row[$field_name]) : $row[$field_name] ?></td>
-<?php
-	} ?>
+		<?php foreach ($fields as $field_name => $field_type) { ?>
+				<td><?= $fields[$field_name] == 'BOOL' ? bool2yesno($row[$field_name]) : $row[$field_name] ?></td>
+		<?php } ?>
 		</tr>
-<?php
-} ?>
+<?php } ?>
 	</tbody>
 </table>
 </div>
-
 
 
 <!-- BIOS SET -->
@@ -677,10 +494,8 @@ $res = $database->query("SELECT * FROM games_biosset WHERE game='$game_name_esca
 <table>
 	<thead>
 		<tr>
-<?php
-// table header
-foreach ($fields as $field_name => $field_type) { ?>
-			<th><?=$field_name?></th>
+<?php foreach ($fields as $field_name => $field_type) { ?> 
+		<th><?=$field_name?></th>
 <?php } ?>
 		</tr>
 	</thead>
@@ -689,20 +504,14 @@ foreach ($fields as $field_name => $field_type) { ?>
 // table rows
 while($row = $res->fetch(PDO::FETCH_ASSOC)) { ?>
 		<tr>
-<?php
-	foreach ($fields as $field_name => $field_type) {
-?>
-		<td><?= $fields[$field_name] == 'BOOL' ? bool2yesno($row[$field_name]) : $row[$field_name] ?></td>
-<?php
-	} ?>
+		<?php foreach ($fields as $field_name => $field_type) { ?>
+				<td><?= $fields[$field_name] == 'BOOL' ? bool2yesno($row[$field_name]) : $row[$field_name] ?></td>
+		<?php } ?>
 		</tr>
-<?php
-} ?>
+<?php } ?>
 	</tbody>
 </table>
 </div>
-
-
 
 
 <!-- CHIP LIST -->
@@ -715,9 +524,7 @@ $res = $database->query("SELECT * FROM games_chip WHERE game='$game_name_escape'
 <table>
 	<thead>
 		<tr>
-<?php
-// table header
-foreach ($fields as $field_name => $field_type) { ?>
+<?php foreach ($fields as $field_name => $field_type) { ?>
 			<th><?=$field_name?></th>
 <?php } ?>
 		</tr>
@@ -727,15 +534,11 @@ foreach ($fields as $field_name => $field_type) { ?>
 // table rows
 while($row = $res->fetch(PDO::FETCH_ASSOC)) { ?>
 		<tr>
-<?php
-	foreach ($fields as $field_name => $field_type) {
-?>
-		<td><?= $fields[$field_name] == 'BOOL' ? bool2yesno($row[$field_name]) : $row[$field_name] ?></td>
-<?php
-	} ?>
+		<?php foreach ($fields as $field_name => $field_type) { ?>
+				<td><?= $fields[$field_name] == 'BOOL' ? bool2yesno($row[$field_name]) : $row[$field_name] ?></td>
+		<?php } ?>
 		</tr>
-<?php
-} ?>
+<?php } ?>
 	</tbody>
 </table>
 </div>
@@ -751,31 +554,22 @@ $res = $database->query("SELECT * FROM games_sample WHERE game='$game_name_escap
 <table>
 	<thead>
 		<tr>
-<?php
-// table header
-foreach ($fields as $field_name => $field_type) { ?>
+<?php foreach ($fields as $field_name => $field_type) { ?>
 			<th><?=$field_name?></th>
 <?php } ?>
 		</tr>
 	</thead>
 	<tbody>
-<?php
-// table rows
-while($row = $res->fetch(PDO::FETCH_ASSOC)) { ?>
+<?php while($row = $res->fetch(PDO::FETCH_ASSOC)) { ?>
 		<tr>
-<?php
-	foreach ($fields as $field_name => $field_type) {
-?>
-		<td><?= $fields[$field_name] == 'BOOL' ? bool2yesno($row[$field_name]) : $row[$field_name] ?></td>
-<?php
-	} ?>
+		<?php foreach ($fields as $field_name => $field_type) { ?>
+				<td><?= $fields[$field_name] == 'BOOL' ? bool2yesno($row[$field_name]) : $row[$field_name] ?></td>
+		<?php } ?>
 		</tr>
-<?php
-} ?>
+<?php } ?>
 	</tbody>
 </table>
 </div>
-
 
 
 <!-- DISK LIST -->
@@ -788,32 +582,22 @@ $res = $database->query("SELECT * FROM games_disk WHERE game='$game_name_escape'
 <table>
 	<thead>
 		<tr>
-<?php
-// table header
-foreach ($fields as $field_name => $field_type) { ?>
+<?php foreach ($fields as $field_name => $field_type) { ?>
 			<th><?=$field_name?></th>
 <?php } ?>
 		</tr>
 	</thead>
 	<tbody>
-<?php
-// table rows
-while($row = $res->fetch(PDO::FETCH_ASSOC)) { ?>
+<?php while($row = $res->fetch(PDO::FETCH_ASSOC)) { ?>
 		<tr>
-<?php
-	foreach ($fields as $field_name => $field_type) {
-?>
-		<td><?= $fields[$field_name] == 'BOOL' ? bool2yesno($row[$field_name]) : $row[$field_name] ?></td>
-<?php
-	} ?>
+		<?php foreach ($fields as $field_name => $field_type) { ?>
+				<td><?= $fields[$field_name] == 'BOOL' ? bool2yesno($row[$field_name]) : $row[$field_name] ?></td>
+		<?php } ?>
 		</tr>
-<?php
-} ?>
+<?php } ?>
 	</tbody>
 </table>
 </div>
-
-
 
 
 <!-- SERIES LIST -->
@@ -842,7 +626,6 @@ while($row = $res->fetch(PDO::FETCH_ASSOC)) { ?>
 </div>
 
 
-
 <!-- CATEGORIES LIST -->
 <?php
 $res = $database->query("SELECT * FROM categories WHERE game='$game_name_escape' ORDER BY version_added DESC") or die("Unable to query database : ".array_pop($database->errorInfo()));
@@ -850,20 +633,15 @@ $res = $database->query("SELECT * FROM categories WHERE game='$game_name_escape'
 <div id="categories_info" class="infos">
 <h2><a name="categories_info">Categories</a></h2>
 	<ul class="categories">
-<?php
-while($row = $res->fetch(PDO::FETCH_ASSOC)) { 
+<?php while($row = $res->fetch(PDO::FETCH_ASSOC)) { 
 	if ($row['version_added'] == 1) { ?>
 		<li>Added to Mame in version <a href="search.php?categorie=<?=$row['categorie']?>"><?=$row['categorie']?></a></li>	
-<?php
-	} else { ?>
+<?php } else { ?>
 		<li><a href="search.php?categorie=<?=$row['categorie']?>"><?=$row['categorie']?></a></li>
-<?php
-	}
-}
-?>
+<?php }
+	} ?>
 	</ul>
 </div>
-
 
 
 <!-- MAMEINFO LIST -->
@@ -873,13 +651,10 @@ $res = $database->query("SELECT * FROM mameinfo WHERE game='$game_name_escape'")
 ?>
 <div id="mameinfo_info" class="infos">
 <h2><a name="mameinfo_info">MAMEinfo</a></h2>
-<?php
-while($row = $res->fetch(PDO::FETCH_ASSOC)) {
+<?php while($row = $res->fetch(PDO::FETCH_ASSOC)) {
 	echo preg_replace('/\n/','<br/>',$row['info']);
-}
-?>
+} ?>
 </div>
-
 
 
 <!-- HISTORIES -->
@@ -888,16 +663,12 @@ $res = $database->query("SELECT * FROM games_histories GH,histories H WHERE GH.g
 ?>
 <div id="stories_info" class="infos">
 <h2><a name="stories_info">History</a></h2>
-<?php
-$row = $res->fetch(PDO::FETCH_ASSOC) ?>
+<?php $row = $res->fetch(PDO::FETCH_ASSOC) ?>
 	<div class="history">
 		<a href="<?=$row['link']?>" target="_blank"><?=$row['link']?></a><br>
 		<?=preg_replace('/\n/','<br/>',$row['history'])?>
 	</div>
-<?php
-?>
 </div>
-
 
 
 <!-- COMMAND LIST -->
@@ -907,14 +678,10 @@ $res = $database->query("SELECT * FROM games_command GC,command C WHERE GC.game=
 ?>
 <div id="command_list" class="infos">
 <h2><a name="command_list">Commands list</a></h2>
-<?php
-while($row = $res->fetch(PDO::FETCH_ASSOC)) { ?>
+<?php while($row = $res->fetch(PDO::FETCH_ASSOC)) { ?>
 	<pre class="command"><?=$row['command']?></pre>
-<?php
-}
-?>
+<?php } ?>
 </div>
-
 
 
 <!-- CHEATS LIST -->
@@ -941,19 +708,15 @@ $res = $database->query("SELECT * FROM cheats WHERE game='$game_name_escape'") o
 </div>
 
 
-
 <!-- STORIES LIST -->
 <?php
 $res = $database->query("SELECT * FROM stories WHERE game='$game_name_escape'") or die("Unable to query database : ".array_pop($database->errorInfo()));
 ?>
 <div id="highscore_info" class="infos">
 <h2><a name="highscore_info">High scores</a></h2>
-<?php
-while($row = $res->fetch(PDO::FETCH_ASSOC)) { ?>
+<?php while($row = $res->fetch(PDO::FETCH_ASSOC)) { ?>
 	<pre class="command"><?=$row['score']?></pre>
-<?php
-}
-?>
+<?php } ?>
 </div>
 
 </body>
