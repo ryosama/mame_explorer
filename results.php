@@ -85,7 +85,15 @@ foreach (array('hide_clones','reverse_order') as $checkbox) {
 	// rom or game name
 	if (strlen($_SESSION['rom_name'])>0) {
 		$value_escape = sqlite_escape_string($_SESSION['rom_name']);
-		array_push($where,"(games.name LIKE '%$value_escape%' OR games.description LIKE '%$value_escape%')");
+
+		$phrase = split(' +',$_SESSION['rom_name']); // split words
+		$and  = array();
+		foreach ($phrase as $mot)
+			if ($mot) array_push($and,"games.description LIKE '%$mot%'");
+		
+		$and = join($and," AND ");
+
+		array_push($where,"(games.name LIKE '%$value_escape%' OR ($and))");
 	}
 
 	//hide clones

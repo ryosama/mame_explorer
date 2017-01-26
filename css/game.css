@@ -12,6 +12,10 @@ h2 {
 	z-index: -1;
 }
 
+h2 a {
+	font-size:1.2em;
+}
+
 #summary {
 	margin-bottom:2em;
 	list-style-type:square;
