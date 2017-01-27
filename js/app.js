@@ -41,7 +41,6 @@ function change_page(select_obj) {
 
 
 function suggest_manufacturer() {
-	//console.log("send request");
 	$('#suggest-manufacturer .suggest-container').html( '<i class="fa fa-spinner fa-pulse fa-3x fa-fw"></i>' );
 	
 	$.ajax({
@@ -58,7 +57,6 @@ function suggest_manufacturer() {
 			html += '</ul>';
 			$('#suggest-manufacturer .suggest-container').html(html);
 
-			//position_sujest_box();
 			$('#suggest-manufacturer').slideDown('fast');
 		}
 	});

@@ -143,14 +143,6 @@ of <span class="nombre"><?=$lastpage?></span>
 <?	} ?>
 </div>
 
-<div id="suggest-manufacturer">
-	<div class="header">
-		Manufacturers
-		<i id="close-suggest-manufacturer" class="fa fa-close fa-small" title="Close"></i>
-	</div>
-	<div class="suggest-container"></div>
-</div>
-
 <?php
 /*
 echo "<pre>$sql</pre>";
