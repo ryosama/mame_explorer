@@ -1,11 +1,8 @@
 <?php
-// page de représentation d'une rom
-
+// rom page presentation
 include_once('inc/config.php');
 include_once('inc/functions.php');
 $database = load_database();
-
-session_start();
 
 if (isset($_GET['name']) && $_GET['name']) {
 	$game_name = $_GET['name'];

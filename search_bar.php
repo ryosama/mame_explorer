@@ -1,3 +1,57 @@
+<?php
+
+session_start();
+
+// defautl value
+$pageno = isset($_GET['pageno']) ? $_GET['pageno'] : 1;
+
+if (isset($_POST['new_search']) && $_POST['new_search']==1)
+	$pageno = 1;
+
+// build the session info
+// init session key
+foreach (array('rom_name','hide_clones','manufacturer','from_year','to_year','order_by','reverse_order','limit','pageno') as $key) {
+	if (!isset($_SESSION[$key])) $_SESSION[$key] = '';
+	if (isset($_POST[$key])) 	 $_SESSION[$key] = $_POST[$key];
+	if (isset($_GET[$key])) 	 $_SESSION[$key] = $_GET[$key];
+}
+
+if ($_SESSION['from_year'] > $_SESSION['to_year']) {
+	$tmp = $_SESSION['from_year'];
+	$_SESSION['from_year'] = $_SESSION['to_year'];
+	$_SESSION['to_year'] = $tmp;
+	unset($tmp);
+}
+
+if (!isset($_SESSION['limit']) || $_SESSION['limit'] <= 0 || !is_numeric($_SESSION['limit']))
+	$_SESSION['limit']=20;
+
+if (!isset($_SESSION['order_by']) || $_SESSION['order_by'] == '')
+	$_SESSION['order_by']='name';
+
+
+// build checkbox
+foreach (array('hide_clones','reverse_order') as $checkbox) {
+	if (!isset($_SESSION[$checkbox])) $_SESSION[$checkbox] = '';
+
+	if (isset($_POST[$checkbox])) {
+		$check = sizeof(array_unique($_POST[$checkbox]));
+		if 		($check==2)
+			$_SESSION[$checkbox] = true;
+		elseif 	($check==1)
+			$_SESSION[$checkbox] = false;
+	}
+
+	if (isset($_GET[$checkbox])) {
+		$check = sizeof(array_unique($_GET[$checkbox]));
+		if 		($check==2)
+			$_SESSION[$checkbox] = true;
+		elseif 	($check==1)
+			$_SESSION[$checkbox] = false;
+	}
+}
+
+?>
 <div id="search-bar">
 
 <form name="rom_search" method="POST" action="results.php" accept-charset="utf-8">
