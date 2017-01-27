@@ -1,34 +1,36 @@
+/* main style */
 body {
 	font-family:Verdana;
 	font-size:11px;
 	padding-top:40px;
-	background-color: #aa6439;
-	color:#ffcbaa;
 }
 
 a {
 	text-decoration: none;
-	color:#ffcbaa;
 }
 
-#results {
-	border-spacing: 5px;
+table {
 	border-collapse: collapse;
+	margin:auto;
 	width:100%;
 }
 
+#results {
+	width:100%;
+	cursor:pointer;
+}
+
 th {
-	border-top:solid 1px #552100;
-	border-bottom:solid 1px #552100;
 	text-align:left;
-	color:#d4936a;
 }
 
 tr {
 	text-align:left;
 	height:32px;
-	border-bottom:solid 1px #552100;
-	cursor:pointer;
+}
+
+tr:hover:first-child {
+	cursor:default;
 }
 
 tr:hover {
@@ -37,22 +39,6 @@ tr:hover {
 
 tr:hover:first-child {
 	text-shadow: none;
-}
-
-tr:nth-child(2n) {
-	background-color: #b66b3d;
-}
-
-th:first-child,td:first-child {
-	border-left:solid 1px #552100;
-}
-
-th:last-child,td:last-child {
-	border-right:solid 1px #552100;
-}
-
-tr:last-child {
-	border-bottom:solid 1px #552100;
 }
 
 div.pagination {
@@ -69,9 +55,13 @@ div.pagination a {
 	font-weight:bold;
 }
 
+#rom_info table {
+	font-size:0.9em;
+}
+
 #suggest-manufacturer {
-	border:solid 1px #552100;
-	background-color:#aa6439;
+	border-style:solid;
+	border-width:1px;	
 	padding:0px
 	margin:auto;
 	width:70%;
@@ -86,8 +76,6 @@ div.pagination a {
 
 #suggest-manufacturer-container {
 	overflow-y: auto;
-	border:none !important;
-	background-color: white !important;
 	height:100%;
 	max-height:428px;
 }
@@ -98,4 +86,133 @@ div.pagination a {
 
 #suggest-manufacturer li {
 	cursor:pointer;
+}
+
+/* from games */
+
+h2 {
+	position:relative;
+	top:-18px;
+	left:-4px;
+	padding-left:5px;
+	z-index: -1;
+}
+
+h2 a {
+	font-size:1.2em;
+}
+
+#summary {
+	margin-bottom:2em;
+	list-style-type:square;
+	width:30%;
+	float:left;
+}
+
+.infos {
+	border-width:1px;
+	border-style:solid;
+	padding:3px;
+	display:table;
+	width:90%;
+	margin-bottom:20px;
+}
+
+
+.sousinfo {
+	margin-bottom:2px;
+}
+
+.labels {
+	font-weight:bold;
+	width:30%;
+	white-space: nowrap;
+	text-align:right;
+	display:inline-block;
+}
+
+
+.labels:after {
+	content:" : ";
+}
+
+.values {
+	font-weight:normal;
+	display:inline-block;
+	white-space: nowrap;
+}
+
+
+.hide {
+	display:none;
+}
+
+#mameinfo_info,#stories_info,#dipswitch_info {
+	font-size:0.8em;
+}
+
+#media {
+	float:left;
+	margin-left:1em;
+}
+
+.media {
+	max-height:350px;
+	max-width:350px;
+}
+
+#icon {
+	border-style:solid
+	border-width: 1px;
+	margin-right:1em;
+	padding:2px;
+}
+
+#media {
+	display:table-row;
+}
+
+#media ul {
+	display:table-cell;
+	list-style:square;
+}
+
+#media li {
+	cursor:pointer;
+	text-decoration:underline;
+}
+
+#snapshot {
+	display:table-cell;
+	padding-left:2em;
+}
+
+#rom_info table {
+	cursor:default !important;
+}
+
+/* search-bar */
+
+#search-bar {
+	padding-left:5px;
+	padding-top:2px;
+	position:fixed;
+	top:0px;
+	left:2px;
+	width:99%;
+	border-style:solid;
+	border-width:1px;
+}
+
+#search-bar div {
+	display:inline-block;
+	margin-right:5px;
+}
+
+#search-manufacturer select {
+	width:200px;
+}
+
+#search-limit input {
+	width:1.5em;
 }

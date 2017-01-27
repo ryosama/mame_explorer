@@ -29,8 +29,7 @@ $has_info = game_has_info($game_name);
 <link rel="stylesheet" href="css/font-awesome.min.css">
 <link rel="stylesheet" href="css/bootstrap.css">
 <link rel="stylesheet" type="text/css" href="css/app.css">
-<link rel="stylesheet" type="text/css" href="css/search-bar.css">
-<link rel="stylesheet" type="text/css" href="css/game.css">
+<link rel="stylesheet" type="text/css" href="css/color.css">
 <script type="text/javascript" src="js/jquery.js"></script>
 <script type="text/javascript" src="js/app.js"></script>
 <script type="text/javascript" src="js/jquery.lightbox.js"></script>
@@ -92,45 +91,36 @@ $(document).ready(function(){
 
 </script>
 
+
 <div id="media">
+<?php	$media_type = array(
+			'snap'		=> 'Snapshot',
+			'titles'	=> 'Title',
+			'bosses'	=> 'Boss',
+			'ending'	=> 'Ending',
+			'marquees'	=> 'Marquee',
+			'flyers'	=> 'Flyer',
+			'cabinets'	=> 'Cabinet',
+			'cpanel'	=> 'Control panel',
+			'pcb'		=> 'PCB',
+			'icons'		=> 'Icon'
+		);
+?>
 	<ul>
-		<?php	if (file_exists(MEDIA_PATH."/snap/$game_name.png")) { ?>
-					<li onclick="show_media(this,'snap')">Snapshot</li>
-		<?php	} ?>
-
-		<?php	if (file_exists(MEDIA_PATH."/titles/$game_name.png")) { ?>
-					<li onclick="show_media(this,'titles')">Title</li>
-		<?php	} ?>
-
-		<?php	if (file_exists(MEDIA_PATH."/marquees/$game_name.png")) { ?>
-					<li onclick="show_media(this,'marquees')">Marquee</li>
-		<?php	} ?>
-
-		<?php	if (file_exists(MEDIA_PATH."/flyers/$game_name.png")) { ?>
-					<li onclick="show_media(this,'flyers')">Flyer</a></li>
-		<?php	} ?>
-		
-		<?php	if (file_exists(MEDIA_PATH."/cabinets/$game_name.png")) { ?>
-					<li onclick="show_media(this,'cabinets')">Cabinet</a></li>
-		<?php	} ?>
-
-		<?php	if (file_exists(MEDIA_PATH."/cpanel/$game_name.png")) { ?>
-					<li onclick="show_media(this,'cpanel')">Control panel</a></li>
-		<?php	} ?>
-
-		<?php	if (file_exists(MEDIA_PATH."/pcb/$game_name.png")) { ?>
-					<li onclick="show_media(this,'pcb')">PCB</a></li>
-		<?php	} ?>
-
-		<?php	if (file_exists(MEDIA_PATH."/icons/$game_name.ico")) { ?>
-					<li onclick="show_media(this,'icons')">Icon</a></li>
-		<?php	} ?>	
+<?php	foreach ($media_type as $media_id => $media_name) {
+			if (file_exists(MEDIA_PATH."/$media_id/$game_name.".($media_id == 'icons' ? 'ico':'png'))) { ?>
+				<li onclick="show_media(this,'<?=$media_id?>')"><?=$media_name?></li>
+<?php 		}
+		} ?>
 	</ul>
 	<div id="snapshot">
 <?php	if (file_exists(MEDIA_PATH."/snap/$game_name.png")) { ?>
 			Snapshot<br/>
 			<a href="<?=MEDIA_PATH?>/snap/<?=$game_name?>.png"><img src="<?=MEDIA_PATH?>/snap/<?=$game_name?>.png" class="media"/></a>
-<?php } ?>
+<?php 	} elseif (file_exists(MEDIA_PATH."/titles/$game_name.png")) { ?>
+			Title<br/>
+			<a href="<?=MEDIA_PATH?>/titles/<?=$game_name?>.png"><img src="<?=MEDIA_PATH?>/titles/<?=$game_name?>.png" class="media"/></a>
+<?php 	} ?>
 	</div>
 </div>
 
@@ -143,12 +133,11 @@ $cloneof = '';
 if ($row_game['cloneof'])
 	$cloneof = $row_game['cloneof'];
 
-
 $search_info = array('manufacturer','year','sourcefile');
 foreach ($fields as $field_name => $field_type) {
 	if ($row_game[$field_name] != '') { // si qqchose a afficher ?>
 		<div id="game_<?=$field_name?>" class="info">
-			<span class="labels row"><?=ucfirst($field_name)?></span>
+			<span class="labels"><?=ucfirst($field_name)?></span>
 			<span class="values">
 <?php			if (in_array($field_name,$search_info)) { // if search criteria ?>
 					<a href="search.php?<?=$field_name?>=<?=$row_game[$field_name]?>"><?=$fields[$field_name]=='BOOL' ? bool2yesno($row_game[$field_name]) : $row_game[$field_name] ?></a>
@@ -164,7 +153,7 @@ foreach ($fields as $field_name => $field_type) {
 $res = $database->query("SELECT * FROM nplayers WHERE game='$game_name_escape'") or die("Unable to query database : ".array_pop($database->errorInfo()));
 while($row = $res->fetch(PDO::FETCH_ASSOC)) { ?>
 		<div id="game_nplayers" class="info">
-			<span class="labels row">Number of players</span>
+			<span class="labels">Number of players</span>
 			<span class="values"><?=$row['players']?></span>
 		</div>
 <?php
@@ -173,7 +162,7 @@ while($row = $res->fetch(PDO::FETCH_ASSOC)) { ?>
 $res = $database->query("SELECT * FROM categories WHERE game='$game_name_escape' AND version_added=1") or die("Unable to query database : ".array_pop($database->errorInfo()));
 $row = $res->fetch(PDO::FETCH_ASSOC); ?>
 		<div id="game_add_in_mame" class="info">
-			<span class="labels row">Added to MAME in version</span>
+			<span class="labels">Added to MAME in version</span>
 			<span class="values"><?=$row['categorie']?></span>
 		</div>
 
@@ -181,14 +170,14 @@ $row = $res->fetch(PDO::FETCH_ASSOC); ?>
 $res = $database->query("SELECT romset_size,romset_file,romset_zip FROM mameinfo WHERE game='$game_name_escape'") or die("Unable to query database : ".array_pop($database->errorInfo()));
 $row = $res->fetch(PDO::FETCH_ASSOC); ?>
 		<div id="game_romset_size" class="info">
-			<span class="labels row">Romset size</span>
+			<span class="labels">Romset size</span>
 			<span class="values"><?=HumanReadableFilesize($row['romset_size'] * 1024)?></span>
 		</div>
 		<div id="game_romset_size" class="info">
-			<span class="labels row">Romset file</span>
+			<span class="labels">Romset file</span>
 			<span class="values"><?=$row['romset_file']?> files</span>
 		</div><div id="game_romset_size" class="info">
-			<span class="labels row">Romset zip</span>
+			<span class="labels">Romset zip</span>
 			<span class="values"><?=HumanReadableFilesize($row['romset_zip'])?></span>
 		</div>
 </div>
@@ -235,7 +224,7 @@ $row = $res->fetch(PDO::FETCH_ASSOC)
 foreach ($fields as $field_name => $field_type) {
 	if ($row[$field_name] != '') { // si qqchose a afficher ?>
 		<div id="game_<?=$field_name?>" class="info">
-			<span class="labels row"><?=ucfirst($field_name)?></span>
+			<span class="labels"><?=ucfirst($field_name)?></span>
 			<span class="values"><?=$fields[$field_name]=='BOOL' ? bool2yesno($row[$field_name]) : $row[$field_name] ?></span>
 		</div>
 <?php
@@ -255,7 +244,7 @@ $row = $res->fetch(PDO::FETCH_ASSOC)
 <?php
 foreach ($fields as $field_name => $field_type) { ?>
 	<div id="game_<?=$field_name?>" class="info">
-		<span class="labels row"><?=ucfirst(str_replace('_',' ',$field_name))?></span>
+		<span class="labels"><?=ucfirst(str_replace('_',' ',$field_name))?></span>
 		<span class="values"><?=$fields[$field_name]=='BOOL' ? bool2yesno($row[$field_name]) : $row[$field_name] ?></span>
 	</div>
 <?php
@@ -273,10 +262,9 @@ $row = $res->fetch(PDO::FETCH_ASSOC);
 <div id="input_info" class="infos">
 <h2><a name="input_info">Input infos</a></h2>
 <?php
-foreach ($fields as $field_name => $field_type) {
-?>
+foreach ($fields as $field_name => $field_type) { ?>
 	<div id="game_<?=$field_name?>" class="info">
-		<span class="labels row"><?=ucfirst(str_replace('_',' ',$field_name))?></span>
+		<span class="labels"><?=ucfirst(str_replace('_',' ',$field_name))?></span>
 		<span class="values"><?=$fields[$field_name]=='BOOL' ? bool2yesno($row[$field_name]) : $row[$field_name] ?></span>
 	</div>
 <?php
@@ -284,7 +272,6 @@ foreach ($fields as $field_name => $field_type) {
 
 if ($has_info['games_control']) {
 $fields = get_fields_info('games_control');
-//print_r($fields);
 $res = $database->query("SELECT * FROM games_control WHERE game='$game_name_escape'") or die("Unable to query database : ".array_pop($database->errorInfo()));
 ?>
 <table>
@@ -301,8 +288,9 @@ $res = $database->query("SELECT * FROM games_control WHERE game='$game_name_esca
 	</tr>
 <?php } ?>
 </table>
-</div>
 <?php } // has game info ?>
+</div>
+
 
 
 <!-- DISPLAY INFO -->
@@ -359,7 +347,7 @@ if ($has_info['games_configuration']) {
 					<div class="sousinfo">
 <?php					foreach ($fields2 as $field_name2 => $field_type2) { ?>
 						<div id="games_configuration_confsetting_<?=$field_name2?>" class="info">
-							<span class="labels row"><?=ucfirst(str_replace('_',' ',$field_name2))?></span>
+							<span class="labels"><?=ucfirst(str_replace('_',' ',$field_name2))?></span>
 							<span class="values"><?=$fields2[$field_name2]=='BOOL' ? bool2yesno($row2[$field_name2]) : $row2[$field_name2] ?></span>
 						</div>
 <?php				} // fin foreach field ?>
@@ -467,9 +455,7 @@ if ($has_info['games_biosset']) {
 		<th><?=$field_name?></th>
 <?php } ?>
 	</tr>
-<?php
-// table rows
-while($row = $res->fetch(PDO::FETCH_ASSOC)) { ?>
+<?php while($row = $res->fetch(PDO::FETCH_ASSOC)) { ?>
 	<tr>
 		<?php foreach ($fields as $field_name => $field_type) { ?>
 			<td><?= $fields[$field_name] == 'BOOL' ? bool2yesno($row[$field_name]) : $row[$field_name] ?></td>
@@ -495,9 +481,7 @@ if ($has_info['games_chip']) {
 		<th><?=$field_name?></th>
 <?php } ?>
 	</tr>
-<?php
-// table rows
-while($row = $res->fetch(PDO::FETCH_ASSOC)) { ?>
+<?php while($row = $res->fetch(PDO::FETCH_ASSOC)) { ?>
 	<tr>
 		<?php foreach ($fields as $field_name => $field_type) { ?>
 			<td><?= $fields[$field_name] == 'BOOL' ? bool2yesno($row[$field_name]) : $row[$field_name] ?></td>

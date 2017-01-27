@@ -10,8 +10,7 @@ $database = load_database();
 <link rel="stylesheet" href="css/font-awesome.min.css">
 <link rel="stylesheet" href="css/bootstrap.css">
 <link rel="stylesheet" type="text/css" href="css/app.css">
-<link rel="stylesheet" type="text/css" href="css/search-bar.css">
-<link rel="stylesheet" type="text/css" href="css/game.css">
+<link rel="stylesheet" type="text/css" href="css/color.css">
 <script type="text/javascript" src="js/jquery.js"></script>
 <script type="text/javascript" src="js/app.js"></script>
 </head>

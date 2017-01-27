@@ -1,0 +1,38 @@
+/* color */ 
+body, #search-bar, #suggest-manufacturer  {
+	background-color: #2e4372;
+	color:#7788AA;
+}
+
+input,select {
+	background-color: #061639;
+	color:#7788AA;
+}
+
+a {
+	color:#7788AA;
+}
+
+h1, #search-bar, .infos, #suggest-manufacturer {
+	border-color: #061639;
+}
+
+table {
+	background-color:#226765;
+}
+
+tr:nth-child(2n) {
+	background-color: #0d4d4b;
+}
+
+th {
+	color:#003432;
+}
+
+td {
+	color:#679b99;
+}
+
+#icon {
+	border-color:black;
+}
