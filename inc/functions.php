@@ -33,6 +33,20 @@ function bool2yesno($bool) {
 }
 
 
+function game_has_info($game) {
+	global $database;
+	$has_info = array();
+	foreach (array(	'games_configuration','games_control','games_display','games_dipswitch','games_adjuster',
+					'games_rom','games_biosset','games_chip','games_sample','games_disk','games_series','categories',
+					'mameinfo','games_histories','games_command','cheats','stories') as $table) {
+		$res = $database->query("SELECT count(*) as has_info FROM $table WHERE game='".sqlite_escape_string($game)."'") or die("Unable to query database : ".array_pop($database->errorInfo()));
+		$row = $res->fetch(PDO::FETCH_ASSOC);
+		$has_info[$table] = $row['has_info'];
+	}
+	return $has_info;
+}
+
+
 /**
  * Returns a human readable filesize
  *
