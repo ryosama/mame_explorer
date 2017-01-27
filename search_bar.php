@@ -31,17 +31,16 @@ if ($_SESSION['from_year'] > $_SESSION['to_year']) {
 	unset($tmp);
 }
 
-if (!isset($_SESSION['limit']) || $_SESSION['limit'] <= 0 || !is_numeric($_SESSION['limit']))
+if ($_SESSION['limit'] <= 0 || !is_numeric($_SESSION['limit']))
 	$_SESSION['limit']=20;
 
-if (!isset($_SESSION['order_by']) || $_SESSION['order_by'] == '')
+if ($_SESSION['order_by'] == '')
 	$_SESSION['order_by']='name';
 
 
 // build checkbox
 foreach (array('hide_clones','reverse_order') as $checkbox) {
-	if (!isset($_SESSION[$checkbox])) $_SESSION[$checkbox] = '';
-
+	
 	if (isset($_POST[$checkbox])) {
 		$check = sizeof(array_unique($_POST[$checkbox]));
 		if 		($check==2)
@@ -82,12 +81,23 @@ foreach (array('hide_clones','reverse_order') as $checkbox) {
 		<label for="from_year">From</label>
 		<select name="from_year">
 		<?php 	$res = $database->query("SELECT DISTINCT(year) as year FROM games ORDER BY year ASC") or die("Unable to query database : ".array_pop($database->errorInfo()));
-				$i = 0;
+				$years = array();
+				$selected = '' ;
+				$i=0;
 				while($row = $res->fetch(PDO::FETCH_ASSOC)) {
-					if ($row['year'] && strpos($row['year'],'?') === false) { ?>
-						<option value="<?=$row['year']?>"<?=$_SESSION['from_year']==$row['year'] ? ' selected="selected"':''?>><?=$row['year']?></option>
-		<?php			$i++;
-					}
+					$years[] = $row['year'];
+					if ($_SESSION['from_year'] == $row['year'])
+						$selected = $i;
+					$i++;
+				}
+
+				if ($selected == '') // first date
+					$selected = 0;
+
+				for($i=0; $i<sizeof($years) ; $i++) {
+					if ($years[$i] && strpos($years[$i],'?') === false) { ?>
+						<option value="<?=$years[$i]?>"<?=$selected==$i ? ' selected="selected"':''?>><?=$years[$i]?></option>
+	<?php			}
 				} ?>
 		</select>
 	</div>
@@ -96,12 +106,23 @@ foreach (array('hide_clones','reverse_order') as $checkbox) {
 	<label for="to_year">to</label>
 	<select name="to_year">
 	<?php 	$res = $database->query("SELECT DISTINCT(year) as year FROM games ORDER BY year ASC") or die("Unable to query database : ".array_pop($database->errorInfo()));
-			$j = 0;
+			$years = array();
+			$selected = '' ;
+			$i=0;
 			while($row = $res->fetch(PDO::FETCH_ASSOC)) {
-				if ($row['year'] && strpos($row['year'],'?') === false) { ?>
-					<option value="<?=$row['year']?>"<?=$_SESSION['to_year']==$row['year'] ? ' selected="selected"':''?>><?=$row['year']?></option>
-	<?php			$j++;
-				}
+				$years[] = $row['year'];
+				if ($_SESSION['to_year'] == $row['year'])
+					$selected = $i;
+					$i++;
+			}
+
+			if ($selected == '') // last date
+				$selected = sizeof($years) - 1;
+
+			for($i=0; $i<sizeof($years) ; $i++) {
+				if ($years[$i] && strpos($years[$i],'?') === false) { ?>
+					<option value="<?=$years[$i]?>"<?=$selected==$i ? ' selected="selected"':''?>><?=$years[$i]?></option>
+	<?php		}
 			} ?>
 	</select>
 	</div>
