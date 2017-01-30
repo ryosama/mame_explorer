@@ -29,6 +29,16 @@ $(document).ready(function() {
 		$('#suggest-manufacturer').slideUp('fast');
 	});
 
+	// adaptive table on mobile
+	$('#display_info table').stacktable();
+	$('#input_info table').stacktable();
+	$('#rom_info table').stacktable();
+	$('#chip_info table').stacktable();
+	$('#adjuster_info table').stacktable();
+	$('#biosset_list table').stacktable();
+	$('#sample_info table').stacktable();
+	$('#disk_info table').stacktable();
+
 }); // end on ready
 
 function goToGame(game) {

@@ -114,7 +114,7 @@ h2 a {
 	border-style:solid;
 	padding:3px;
 	display:table;
-	width:90%;
+	width:99%;
 	margin-bottom:20px;
 }
 
@@ -125,7 +125,7 @@ h2 a {
 
 .labels {
 	font-weight:bold;
-	width:30%;
+	width:180px;
 	white-space: nowrap;
 	text-align:right;
 	display:inline-block;
@@ -215,4 +215,8 @@ h2 a {
 
 #search-limit input {
 	width:1.5em;
+}
+
+.stacktable.small-only {
+	display:none;
 }

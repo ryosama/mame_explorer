@@ -31,10 +31,12 @@ $has_info = game_has_info($game_name);
 <link rel="stylesheet" href="css/bootstrap.css">
 <link rel="stylesheet" type="text/css" href="css/app.css">
 <link rel="stylesheet" type="text/css" href="css/color.css">
+<link rel="stylesheet" type="text/css" href="css/mobile.css">
 <script type="text/javascript" src="js/jquery.js"></script>
 <script type="text/javascript" src="js/app.js"></script>
 <script type="text/javascript" src="js/jquery.lightbox.js"></script>
 <link rel="stylesheet" type="text/css" href="css/jquery.lightbox.css" media="screen" />
+<script type="text/javascript" src="js/stacktable.min.js"></script>
 </head>
 <body>
 
@@ -442,13 +444,13 @@ if ($has_info['games_rom']) {
 <table>
 	<tr>
 <?php foreach ($fields as $field_name => $field_type) { ?>
-		<th><?=$field_name?></th>
+		<th class="<?=$field_name?>"><?=$field_name?></th>
 <?php } ?>
 		</tr>
 <?php while($row = $res->fetch(PDO::FETCH_ASSOC)) { ?>
 	<tr>
 		<?php foreach ($fields as $field_name => $field_type) { ?>
-			<td><?= $fields[$field_name] == 'BOOL' ? bool2yesno($row[$field_name]) : $row[$field_name] ?></td>
+			<td class="<?=$field_name?>"><?= $fields[$field_name] == 'BOOL' ? bool2yesno($row[$field_name]) : $row[$field_name] ?></td>
 		<?php } ?>
 	</tr>
 <?php } ?>

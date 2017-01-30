@@ -12,6 +12,7 @@ $database = load_database();
 <link rel="stylesheet" href="css/bootstrap.css">
 <link rel="stylesheet" type="text/css" href="css/app.css">
 <link rel="stylesheet" type="text/css" href="css/color.css">
+<link rel="stylesheet" type="text/css" href="css/mobile.css">
 <script type="text/javascript" src="js/jquery.js"></script>
 <script type="text/javascript" src="js/app.js"></script>
 </head>
@@ -85,12 +86,12 @@ EOT;
 	$sql = preg_replace('/ +LIMIT +\d+ *, *\d+ *$/i','',$sql);
 ?>
 	<tr>
-		<th>Icon</th>
-		<th>Name</th>
-		<th>Description</th>
-		<th>Year</th>
-		<th>Manufacturer</th>
-		<th>Clone of</th>
+		<th class="icon">Icon</th>
+		<th class="name">Name</th>
+		<th class="description">Description</th>
+		<th class="year">Year</th>
+		<th class="manufacturer">Manufacturer</th>
+		<th class="cloneof">Clone of</th>
 	</tr>
 <?php
 		$sql_count = preg_replace('/^ *SELECT\s+.+\s+FROM\s+/i','SELECT count(*) as nb_rows FROM ',$sql);
@@ -105,16 +106,16 @@ EOT;
 		$res = $database->query($sql) or die("Unable to query2 ($sql) database : ".array_pop($database->errorInfo()));
 		while($row = $res->fetch(PDO::FETCH_ASSOC)) { ?>
 			<tr onclick="goToGame('<?=$row['name']?>')">
-				<td><!-- icon -->
+				<td class="icon"><!-- icon -->
 					<?php	if (file_exists(MEDIA_PATH."/icons/$row[name].ico")) { ?>
 								<img src="<?=MEDIA_PATH?>/icons/<?=$row['name']?>.ico" class="icon"/>
 					<?php	} ?>
 				</td>
-				<td><?=$row['name']?></td>
-				<td><?=$row['description']?></td>
-				<td><?=$row['year']?></td>
-				<td><?=$row['manufacturer']?></td>
-				<td><?=$row['cloneof']?></td>
+				<td class="name"><?=$row['name']?></td>
+				<td class="description"><?=$row['description']?></td>
+				<td class="year"><?=$row['year']?></td>
+				<td class="manufacturer"><?=$row['manufacturer']?></td>
+				<td class="cloneof"><?=$row['cloneof']?></td>
 			</tr>
 <?php	} // end while for each rom ?>
 </table>
