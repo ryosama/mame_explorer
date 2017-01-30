@@ -26,6 +26,7 @@ $has_info = game_has_info($game_name);
 <head>
 <title>Mame game : <?=$row_game['name']?> : <?=$row_game['description']?></title>
 <meta http-equiv="Content-Type" content="text/html; charset=iso8859-1">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link rel="stylesheet" href="css/font-awesome.min.css">
 <link rel="stylesheet" href="css/bootstrap.css">
 <link rel="stylesheet" type="text/css" href="css/app.css">
@@ -150,25 +151,25 @@ foreach ($fields as $field_name => $field_type) {
 	}
 }
 
-$res = $database->query("SELECT * FROM nplayers WHERE game='$game_name_escape'") or die("Unable to query database : ".array_pop($database->errorInfo()));
-while($row = $res->fetch(PDO::FETCH_ASSOC)) { ?>
-		<div id="game_nplayers" class="info">
-			<span class="labels">Number of players</span>
-			<span class="values"><?=$row['players']?></span>
-		</div>
+		$res = $database->query("SELECT * FROM nplayers WHERE game='$game_name_escape'") or die("Unable to query database : ".array_pop($database->errorInfo()));
+		while($row = $res->fetch(PDO::FETCH_ASSOC)) { ?>
+			<div id="game_nplayers" class="info">
+				<span class="labels">Number of players</span>
+				<span class="values"><?=$row['players']?></span>
+			</div>
 <?php
-}
+		}
 
-$res = $database->query("SELECT * FROM categories WHERE game='$game_name_escape' AND version_added=1") or die("Unable to query database : ".array_pop($database->errorInfo()));
-$row = $res->fetch(PDO::FETCH_ASSOC); ?>
+		$res = $database->query("SELECT * FROM categories WHERE game='$game_name_escape' AND version_added=1") or die("Unable to query database : ".array_pop($database->errorInfo()));
+		$row = $res->fetch(PDO::FETCH_ASSOC); ?>
 		<div id="game_add_in_mame" class="info">
 			<span class="labels">Added to MAME in version</span>
 			<span class="values"><?=$row['categorie']?></span>
 		</div>
 
 <?php
-$res = $database->query("SELECT romset_size,romset_file,romset_zip FROM mameinfo WHERE game='$game_name_escape'") or die("Unable to query database : ".array_pop($database->errorInfo()));
-$row = $res->fetch(PDO::FETCH_ASSOC); ?>
+		$res = $database->query("SELECT romset_size,romset_file,romset_zip FROM mameinfo WHERE game='$game_name_escape'") or die("Unable to query database : ".array_pop($database->errorInfo()));
+		$row = $res->fetch(PDO::FETCH_ASSOC); ?>
 		<div id="game_romset_size" class="info">
 			<span class="labels">Romset size</span>
 			<span class="values"><?=HumanReadableFilesize($row['romset_size'] * 1024)?></span>
@@ -176,9 +177,24 @@ $row = $res->fetch(PDO::FETCH_ASSOC); ?>
 		<div id="game_romset_size" class="info">
 			<span class="labels">Romset file</span>
 			<span class="values"><?=$row['romset_file']?> files</span>
-		</div><div id="game_romset_size" class="info">
+		</div>
+		<div id="game_romset_size" class="info">
 			<span class="labels">Romset zip</span>
 			<span class="values"><?=HumanReadableFilesize($row['romset_zip'])?></span>
+		</div>
+<?php
+		$res = $database->query("SELECT L.language FROM languages L LEFT JOIN games_languages GL ON L.id=GL.language_id WHERE GL.game='$game_name_escape'") or die("Unable to query database : ".array_pop($database->errorInfo()));
+		$row = $res->fetch(PDO::FETCH_ASSOC); ?>
+		<div id="game_language" class="info">
+			<span class="labels">Language</span>
+			<span class="values"><?=$row['language']?></span>
+		</div>
+<?php
+		$res = $database->query("SELECT evaluation FROM bestgames WHERE game='$game_name_escape'") or die("Unable to query database : ".array_pop($database->errorInfo()));
+		$row = $res->fetch(PDO::FETCH_ASSOC); ?>
+		<div id="game_evaluation" class="info">
+			<span class="labels">Evaluation</span>
+			<span class="values"><?=$row['evaluation']?></span>
 		</div>
 </div>
 

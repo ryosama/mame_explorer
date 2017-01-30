@@ -1,1 +1,3 @@
 /sources
+!/sources/mame2sqlite.pl
+!/sources/getfiles.pl
