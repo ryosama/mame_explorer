@@ -8,7 +8,7 @@ if (isset($_GET['name']) && $_GET['name']) {
 	$game_name = $_GET['name'];
 } else {
 	// find a random game
-	$res = $database->query("SELECT name FROM games WHERE cloneof='' ORDER BY random() LIMIT 0,1") or die("Unable to query database : ".array_pop($database->errorInfo()));
+	$res = $database->query("SELECT name FROM games WHERE cloneof is NULL and runnable=1 ORDER BY random() LIMIT 0,1") or die("Unable to query database : ".array_pop($database->errorInfo()));
 	$row = $res->fetch(PDO::FETCH_ASSOC);
 	$game_name = $row['name'];
 }	
@@ -100,7 +100,13 @@ $(document).ready(function(){
 			'snap'		=> 'Snapshot',
 			'titles'	=> 'Title',
 			'bosses'	=> 'Boss',
-			'ending'	=> 'Ending',
+			'ends'		=> 'Ending',
+			'gameover'	=> 'Game Over',
+			'howto'		=> 'How To',
+			'logo'		=> 'Logo',
+			'scores'	=> 'Score',
+			'select'	=> 'Select',
+			'versus'	=> 'Versus',
 			'marquees'	=> 'Marquee',
 			'flyers'	=> 'Flyer',
 			'cabinets'	=> 'Cabinet',
@@ -275,7 +281,7 @@ foreach ($fields as $field_name => $field_type) {
 
 <!-- DRIVERS INFO -->
 <?php
-$fields = array('driver_status'=>'VARCHAR','driver_emulation'=>'VARCHAR','driver_color'=>'VARCHAR','driver_sound'=>'VARCHAR','driver_graphic'=>'VARCHAR','driver_cocktail'=>'VARCHAR','driver_protection'=>'VARCHAR','driver_savestate'=>'BOOL','driver_palettesize'=>'INTEGER');
+$fields = array('driver_status'=>'VARCHAR','driver_emulation'=>'VARCHAR','driver_color'=>'VARCHAR','driver_sound'=>'VARCHAR','driver_graphic'=>'VARCHAR','driver_cocktail'=>'VARCHAR','driver_protection'=>'VARCHAR','driver_savestate'=>'BOOL');
 $res = $database->query("SELECT ".join(',',array_keys($fields))." FROM games WHERE name='$game_name_escape'") or die("Unable to query database : ".array_pop($database->errorInfo()));
 $row = $res->fetch(PDO::FETCH_ASSOC)
 ?>

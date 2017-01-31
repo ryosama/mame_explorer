@@ -21,7 +21,6 @@ $database = load_database();
 <? include_once('search_bar.php'); ?>
 
 <!-- RESULT LIST -->
-<table id="results">
 <?php
 	// build SQL request	
 	$tables = 'games';
@@ -45,7 +44,7 @@ $database = load_database();
 
 	//hide clones
 	if ($_SESSION['hide_clones'])
-		array_push($where,"games.cloneof=''");
+		array_push($where,"games.cloneof is NULL");
 
 	// manufacturer
 	if (strlen($_SESSION['manufacturer'])>0)
@@ -84,7 +83,30 @@ LIMIT $limit
 EOT;
 
 	$sql = preg_replace('/ +LIMIT +\d+ *, *\d+ *$/i','',$sql);
+
+	$sql_count = preg_replace('/^ *SELECT\s+.+\s+FROM\s+/i','SELECT count(*) as nb_rows FROM ',$sql);
+	$sql_count = preg_replace('/ *ORDER\s+BY\s+.+\s+(?:ASC|DESC)/i',' ',$sql_count);
+	$sql_count = preg_replace('/ *LIMIT +\d+ *, *\d+ */i',' ',$sql_count);
+	$res_count = $database->query($sql_count) or die("Unable to query1 ($sql_count) database : ".array_pop($database->errorInfo()));
+	$row_count = $res_count->fetch(PDO::FETCH_ASSOC);
+	$row_count = $row_count['nb_rows'];
+	$lastpage  = ceil($row_count / $_SESSION['limit']);
+
+	$res  = $database->query($sql) or die("Unable to query2 ($sql) database : ".array_pop($database->errorInfo()));
+	$rows = $res->fetchAll();
+
+	if ($row_count == 1) { // redirect to rom page
+		$row = $rows[0];
 ?>
+		<script type="text/javascript">
+		$(document).ready(function(){
+			// redirect to rom page
+			document.location.href='index.php?name=<?=$row['name']?>';
+		});
+		</script>
+<?php } ?>
+
+<table id="results">
 	<tr>
 		<th class="icon">Icon</th>
 		<th class="name">Name</th>
@@ -93,31 +115,23 @@ EOT;
 		<th class="manufacturer">Manufacturer</th>
 		<th class="cloneof">Clone of</th>
 	</tr>
-<?php
-		$sql_count = preg_replace('/^ *SELECT\s+.+\s+FROM\s+/i','SELECT count(*) as nb_rows FROM ',$sql);
-		$sql_count = preg_replace('/ *ORDER\s+BY\s+.+\s+(?:ASC|DESC)/i',' ',$sql_count);
-		$sql_count = preg_replace('/ *LIMIT +\d+ *, *\d+ */i',' ',$sql_count);
-		$res_count = $database->query($sql_count) or die("Unable to query1 ($sql_count) database : ".array_pop($database->errorInfo()));
-		$row_count = $res_count->fetch(PDO::FETCH_ASSOC);
-		$row_count = $row_count['nb_rows'];
-		$lastpage  = ceil($row_count / $_SESSION['limit']);
 
-		// search for roms
-		$res = $database->query($sql) or die("Unable to query2 ($sql) database : ".array_pop($database->errorInfo()));
-		while($row = $res->fetch(PDO::FETCH_ASSOC)) { ?>
-			<tr onclick="goToGame('<?=$row['name']?>')">
-				<td class="icon"><!-- icon -->
-					<?php	if (file_exists(MEDIA_PATH."/icons/$row[name].ico")) { ?>
-								<img src="<?=MEDIA_PATH?>/icons/<?=$row['name']?>.ico" class="icon"/>
-					<?php	} ?>
-				</td>
-				<td class="name"><?=$row['name']?></td>
-				<td class="description"><?=$row['description']?></td>
-				<td class="year"><?=$row['year']?></td>
-				<td class="manufacturer"><?=$row['manufacturer']?></td>
-				<td class="cloneof"><?=$row['cloneof']?></td>
-			</tr>
-<?php	} // end while for each rom ?>
+<?php	// search for roms
+	
+	foreach ($rows as $row) { ?>
+		<tr onclick="goToGame('<?=$row['name']?>')">
+			<td class="icon"><!-- icon -->
+				<?php	if (file_exists(MEDIA_PATH."/icons/$row[name].ico")) { ?>
+							<img src="<?=MEDIA_PATH?>/icons/<?=$row['name']?>.ico" class="icon"/>
+				<?php	} ?>
+			</td>
+			<td class="name"><?=$row['name']?></td>
+			<td class="description"><?=$row['description']?></td>
+			<td class="year"><?=$row['year']?></td>
+			<td class="manufacturer"><?=$row['manufacturer']?></td>
+			<td class="cloneof"><?=$row['cloneof']?></td>
+		</tr>
+<?php } // end while for each rom ?>
 </table>
 
 <div class="pagination">
