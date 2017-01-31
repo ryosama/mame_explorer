@@ -17,7 +17,7 @@ $sqlite->do("PRAGMA foreign_keys = ON;") or die "Can't enable foreign_keys pragm
 
 my $sql;
 
-create table
+#create table
 parse_mamelistxml();
 parse_mameinfo();
 parse_nplayers();
@@ -72,6 +72,28 @@ sub parse_mamelistxml {
 	my $configuration_id	= 1;
 	my $category_id			= 1;
 	my $device_id			= 1;
+
+	my $sth_game = $sqlite->prepare("INSERT INTO games (name,sourcefile,isbios,runnable,cloneof,romof,sampleof,description,year,manufacturer,sound_channels,input_service,input_tilt,input_players,input_buttons,input_coins,driver_status,driver_emulation,driver_color,driver_sound,driver_graphic,driver_cocktail,driver_protection,driver_savestate) VALUES (".join(',', ('?')x24).")");
+	my $sth_biosset = $sqlite->prepare("INSERT INTO games_biosset (game,name,description,'default') VALUES (?,?,?,?)");
+	my $sth_rom     = $sqlite->prepare("INSERT INTO games_rom (game,name,bios,size,crc,md5,sha1,merge,region,offset,status,optional) VALUES (".join(',', ('?')x12).")");
+	my $sth_disk    = $sqlite->prepare("INSERT INTO games_disk (game,name,md5,sha1,merge,region,'index',status,optional) VALUES (".join(',', ('?')x9).")");
+	my $sth_sample  = $sqlite->prepare("INSERT INTO games_sample (game,name) VALUES (?,?)");
+	my $sth_chip    = $sqlite->prepare("INSERT INTO games_chip (game,name,tag,'type',clock) VALUES (?,?,?,?,?)");
+	my $sth_display = $sqlite->prepare("INSERT INTO games_display (game,'type',rotate,flipx,width,height,refresh,pixclock,htotal,hbend,hbstart,vtotal,vbend,vbstart) VALUES (".join(',', ('?')x14).")");
+	my $sth_control = $sqlite->prepare("INSERT INTO games_control (game,'type',ways,minimum,maximum,sensitivity,keydelta,reverse) VALUES (".join(',', ('?')x8).")");
+	my $sth_dipswitch = $sqlite->prepare("INSERT INTO games_dipswitch (id,game,name,tag,mask) VALUES (?,?,?,?,?)");
+	my $sth_dipvalue  = $sqlite->prepare("INSERT INTO games_dipswitch_dipvalue (dipswitch_id,name,'value','default') VALUES (?,?,?,?)");
+	my $sth_adjuster  = $sqlite->prepare("INSERT INTO games_adjuster (game,name,'default') VALUES (?,?,?)");
+	my $sth_softwarelist = $sqlite->prepare("INSERT INTO games_softwarelist (game,name,status) VALUES (?,?,?)");
+	my $sth_ramoption = $sqlite->prepare("INSERT INTO games_ramoption (game,'value','default') VALUES (?,?,?)");
+	my $sth_configuration = $sqlite->prepare("INSERT INTO games_configuration (id,game,name,tag,mask) VALUES (?,?,?,?,?)");
+	my $sth_confsetting   = $sqlite->prepare("INSERT INTO games_configuration_confsetting (configuration_id,name,'value','default') VALUES (?,?,?,?)");
+	my $sth_category      = $sqlite->prepare("INSERT INTO games_category (id,game,name) VALUES (?,?,?)");
+	my $sth_category_item = $sqlite->prepare("INSERT INTO games_category_item (category_id,name,'default') VALUES (?,?,?)");
+	my $sth_device = $sqlite->prepare("INSERT INTO games_device (id,game,'type','tag','mandatory','interface') VALUES (?,?,?,?,?,?)");
+	my $sth_device_instance  = $sqlite->prepare("INSERT INTO games_device_instance (device_id,name,briefname) VALUES (?,?,?)");
+	my $sth_device_extension = $sqlite->prepare("INSERT INTO games_device_extension (device_id,name) VALUES (?,?)");
+
 	open(XML,'<mame.xml') or die "Can't find 'mame.xml' ($!)";
 	while(<XML>) {
 		chomp;
@@ -83,62 +105,38 @@ sub parse_mamelistxml {
 			$in_game = 0;
 
 			# parse <game> tag
-			#print STDERR join("\n",@xml_game);
 			my $xml;
 			try {
 				$xml = XMLin(join("\n",@xml_game));
 			};
-			#print STDERR Dumper($xml); exit;
-			
-			# debug
-			#if ($xml->{'name'} ne 'asterix') { next ; }
-
+		
 			# default value
 			$xml->{'isbios'}				= 'no'			if !exists $xml->{'isbios'};
 			$xml->{'runnable'}				= 'yes'			if !exists $xml->{'runnable'};
 			$xml->{'input'}->{'service'}	= 'no'			if !exists $xml->{'input'}->{'service'};
 			$xml->{'input'}->{'tilt'}		= 'no'			if !exists $xml->{'input'}->{'tilt'};
 
-			$sql = "INSERT INTO games (name,sourcefile,isbios,runnable,cloneof,romof,sampleof,description,year,manufacturer,sound_channels,input_service,input_tilt,input_players,input_buttons,input_coins,driver_status,driver_emulation,driver_color,driver_sound,driver_graphic,driver_cocktail,driver_protection,driver_savestate,driver_palettesize) VALUES (".
-						"'".quotify($xml->{'name'})."',".
-						"'".quotify($xml->{'sourcefile'})."',".
-						"'".yesno2bool($xml->{'isbios'})."',".
-						"'".yesno2bool($xml->{'runnable'})."',".
-						"'".quotify($xml->{'cloneof'})."',".
-						"'".quotify($xml->{'romof'})."',".
-						"'".quotify($xml->{'sampleof'})."',".
-						"'".quotify($xml->{'description'})."',".
-						"'".quotify($xml->{'year'})."',".
-						"'".quotify($xml->{'manufacturer'})."',".
-						"'".quotify($xml->{'sound'}->{'channels'})."',".
-						"'".yesno2bool($xml->{'input'}->{'service'})."',".
-						"'".yesno2bool($xml->{'input'}->{'tilt'})."',".
-						"'".quotify($xml->{'input'}->{'players'})."',".
-						"'".quotify($xml->{'input'}->{'buttons'})."',".
-						"'".quotify($xml->{'input'}->{'coins'})."',".
-						"'".quotify($xml->{'driver'}->{'status'})."',".
-						"'".quotify($xml->{'driver'}->{'emulation'})."',".
-						"'".quotify($xml->{'driver'}->{'color'})."',".
-						"'".quotify($xml->{'driver'}->{'sound'})."',".
-						"'".quotify($xml->{'driver'}->{'graphic'})."',".
-						"'".quotify($xml->{'driver'}->{'cocktail'})."',".
-						"'".quotify($xml->{'driver'}->{'protection'})."',".
-						"'".quotify($xml->{'driver'}->{'savestate'})."',".
-						"'".quotify($xml->{'driver'}->{'palettesize'})."'".
-					")";
-			$sqlite->do($sql) or warn "Can't insert $sql";
+			$sth_game->execute(
+				$xml->{'name'},								$xml->{'sourcefile'},
+				yesno2bool($xml->{'isbios'}),				yesno2bool($xml->{'runnable'}),
+				$xml->{'cloneof'},							$xml->{'romof'},
+				$xml->{'sampleof'},							$xml->{'description'},
+				$xml->{'year'},								$xml->{'manufacturer'},
+				$xml->{'sound'}->{'channels'},				yesno2bool($xml->{'input'}->{'service'}),
+				yesno2bool($xml->{'input'}->{'tilt'}),		$xml->{'input'}->{'players'},
+				$xml->{'input'}->{'buttons'},				$xml->{'input'}->{'coins'},
+				$xml->{'driver'}->{'status'},				$xml->{'driver'}->{'emulation'},
+				$xml->{'driver'}->{'color'},				$xml->{'driver'}->{'sound'},
+				$xml->{'driver'}->{'graphic'},				$xml->{'driver'}->{'cocktail'},
+				$xml->{'driver'}->{'protection'},			$xml->{'driver'}->{'savestate'}
+			) or warn "Can't insert game ".$xml->{'name'}."\n";
+
 
 			$xml->{'biosset'} = { $xml->{'biosset'}->{'name'} => $xml->{'biosset'} } if exists $xml->{'biosset'}->{'name'} ; # only one element in this hash
 			foreach my $biosset_name (keys %{$xml->{'biosset'}}) {
 				my $shortcut = $xml->{'biosset'}->{$biosset_name};
 				$shortcut->{'default'} = 'no' if !exists $shortcut->{'default'};
-				$sql = "INSERT INTO games_biosset (game,name,description,'default') VALUES (".
-							"'".quotify($xml->{'name'})."',".
-							"'".quotify($biosset_name)."',".
-							"'".quotify($shortcut->{'description'})."',".
-							"'".quotify($shortcut->{'default'})."'".
-						")";
-				$sqlite->do($sql) or warn "Can't insert $sql";
+				$sth_biosset->execute($xml->{'name'}, $biosset_name, $shortcut->{'description'}, $shortcut->{'default'}) or warn "Can't insert biosset";
 			} # end each disk
 
 			$xml->{'rom'} = { $xml->{'rom'}->{'name'} => $xml->{'rom'} } if exists $xml->{'rom'}->{'name'} ; # only one element in this hash
@@ -146,21 +144,12 @@ sub parse_mamelistxml {
 				my $shortcut = $xml->{'rom'}->{$rom_name};
 				$shortcut->{'status'} = 'good' if !exists $shortcut->{'status'};
 				$shortcut->{'optional'} = 'no' if !exists $shortcut->{'optional'};
-				$sql = "INSERT INTO games_rom (game,name,bios,size,crc,md5,sha1,merge,region,offset,status,optional) VALUES (".
-							"'".quotify($xml->{'name'})."',".
-							"'".quotify($rom_name)."',".
-							"'".quotify($shortcut->{'bios'})."',".
-							"'".quotify($shortcut->{'size'})."',".
-							"'".quotify($shortcut->{'crc'})."',".
-							"'".quotify($shortcut->{'md5'})."',".
-							"'".quotify($shortcut->{'sha1'})."',".
-							"'".quotify($shortcut->{'merge'})."',".
-							"'".quotify($shortcut->{'region'})."',".
-							"'".quotify($shortcut->{'offset'})."',".
-							"'".quotify($shortcut->{'status'})."',".
-							"'".yesno2bool($shortcut->{'optional'})."'".
-						")";
-				$sqlite->do($sql) or warn "Can't insert $sql";
+				$sth_rom->execute(
+					$xml->{'name'},			$rom_name,				$shortcut->{'bios'},
+					$shortcut->{'size'},	$shortcut->{'crc'},		$shortcut->{'md5'},
+					$shortcut->{'sha1'},	$shortcut->{'merge'},	$shortcut->{'region'},
+					$shortcut->{'offset'},	$shortcut->{'status'},	yesno2bool($shortcut->{'optional'})
+				) or warn "Can't insert rom";
 			} # end each rom
 
 			$xml->{'disk'} = { $xml->{'disk'}->{'name'} => $xml->{'disk'} } if exists $xml->{'disk'}->{'name'} ; # only one element in this hash
@@ -168,62 +157,37 @@ sub parse_mamelistxml {
 				my $shortcut = $xml->{'disk'}->{$disk_name};
 				$shortcut->{'status'} = 'good' if !exists $shortcut->{'status'};
 				$shortcut->{'optional'} = 'no' if !exists $shortcut->{'optional'};
-				$sql = "INSERT INTO games_disk (game,name,md5,sha1,merge,region,'index',status,optional) VALUES (".
-							"'".quotify($xml->{'name'})."',".
-							"'".quotify($disk_name)."',".
-							"'".quotify($shortcut->{'md5'})."',".
-							"'".quotify($shortcut->{'sha1'})."',".
-							"'".quotify($shortcut->{'merge'})."',".
-							"'".quotify($shortcut->{'region'})."',".
-							"'".quotify($shortcut->{'index'})."',".
-							"'".quotify($shortcut->{'status'})."',".
-							"'".yesno2bool($shortcut->{'optional'})."'".
-						")";
-				$sqlite->do($sql) or warn "Can't insert $sql";
+				$sth_disk->execute(
+					$xml->{'name'},			$disk_name,				$shortcut->{'md5'},
+					$shortcut->{'sha1'},	$shortcut->{'merge'}, 	$shortcut->{'region'},
+					$shortcut->{'index'},	$shortcut->{'status'},	yesno2bool($shortcut->{'optional'})
+				) or warn "Can't insert disk";
 			} # end each disk
 
 			$xml->{'sample'} = { $xml->{'sample'}->{'name'} => $xml->{'sample'} } if exists $xml->{'sample'}->{'name'} ; # only one element in this hash
 			foreach my $sample_name (keys %{$xml->{'sample'}}) {
-				$sql = "INSERT INTO games_sample (game,name) VALUES (".
-							"'".quotify($xml->{'name'})."',".
-							"'".quotify($sample_name)."'".
-						")";
-				$sqlite->do($sql) or warn "Can't insert $sql";
+				$sth_sample->execute($xml->{'name'}, $sample_name) or warn "Can't insert sample";
 			} # end each sample
 
 			$xml->{'chip'} = { $xml->{'chip'}->{'name'} => $xml->{'chip'} } if exists $xml->{'chip'}->{'name'} ; # only one element in this hash
 			foreach my $chip_name (keys %{$xml->{'chip'}}) {
 				my $shortcut = $xml->{'chip'}->{$chip_name};
-				$sql = "INSERT INTO games_chip (game,name,tag,'type',clock) VALUES (".
-							"'".quotify($xml->{'name'})."',".
-							"'".quotify($chip_name)."',".
-							"'".quotify($shortcut->{'tag'})."',".
-							"'".quotify($shortcut->{'type'})."',".
-							"'".quotify($shortcut->{'clock'})."'".
-						")";
-				$sqlite->do($sql) or warn "Can't insert $sql";
+				$sth_chip->execute(
+					$xml->{'name'}, 		$chip_name, 	$shortcut->{'tag'},
+					$shortcut->{'type'}, 	$shortcut->{'clock'}
+				) or warn "Can't insert chip";
 			} # end each chip
 
 			$xml->{'display'} = [ $xml->{'display'} ] if ref $xml->{'display'} eq 'HASH'; # only one element --> convert to array
 			foreach my $display (@{$xml->{'display'}}) {
 				$display->{'flipx'} = 'no' if !exists $display->{'flipx'};
-				$sql = "INSERT INTO games_display (game,'type',rotate,flipx,width,height,refresh,pixclock,htotal,hbend,hbstart,vtotal,vbend,vbstart) VALUES (".
-							"'".quotify($xml->{'name'})."',".
-							"'".quotify($display->{'type'})."',".
-							"'".quotify($display->{'rotate'})."',".
-							"'".yesno2bool($display->{'flipx'})."',".
-							"'".quotify($display->{'width'})."',".
-							"'".quotify($display->{'height'})."',".
-							"'".quotify($display->{'refresh'})."',".
-							"'".quotify($display->{'pixclock'})."',".
-							"'".quotify($display->{'htotal'})."',".
-							"'".quotify($display->{'hbend'})."',".
-							"'".quotify($display->{'hbstart'})."',".
-							"'".quotify($display->{'vtotal'})."',".
-							"'".quotify($display->{'vbend'})."',".
-							"'".quotify($display->{'vbstart'})."'".
-						")";
-				$sqlite->do($sql) or warn "Can't insert $sql";
+				$sth_display->execute(
+					$xml->{'name'},						$display->{'type'},			$display->{'rotate'},
+					yesno2bool($display->{'flipx'}),	$display->{'width'},		$display->{'height'},
+					$display->{'refresh'},				$display->{'pixclock'},		$display->{'htotal'},
+					$display->{'hbend'},				$display->{'hbstart'},		$display->{'vtotal'},
+					$display->{'vbend'},				$display->{'vbstart'}
+				) or warn "Can't insert display";
 			} # end each display
 
 	
@@ -241,43 +205,28 @@ sub parse_mamelistxml {
 			foreach my $control_type (keys %{$xml->{'input'}->{'control'}}) {
 				my $shortcut = $xml->{'input'}->{'control'}->{$control_type};
 				$shortcut->{'reverse'} = 'no' if !exists $shortcut->{'reverse'};
-				$sql = "INSERT INTO games_control (game,'type',ways,minimum,maximum,sensitivity,keydelta,reverse) VALUES (".
-							"'".quotify($xml->{'name'})."',".
-							"'".quotify($control_type)."',".
-							"'".quotify($shortcut->{'ways'})."',".
-							"'".quotify($shortcut->{'minimum'})."',".
-							"'".quotify($shortcut->{'maximum'})."',".
-							"'".quotify($shortcut->{'sensitivity'})."',".
-							"'".quotify($shortcut->{'keydelta'})."',".
-							"'".yesno2bool($shortcut->{'reverse'})."'".
-						")";
-				$sqlite->do($sql) or warn "Can't insert $sql";
+				$sth_control->execute(
+					$xml->{'name'},				$control_type,			$shortcut->{'ways'},
+					$shortcut->{'minimum'},		$shortcut->{'maximum'},	$shortcut->{'sensitivity'},
+					$shortcut->{'keydelta'},	yesno2bool($shortcut->{'reverse'})
+				) or warn "Can't insert control";
 			} # end each control
 	
 
 			$xml->{'dipswitch'} = { $xml->{'dipswitch'}->{'name'} => $xml->{'dipswitch'} } if exists $xml->{'dipswitch'}->{'name'} ; # only one element in this hash
 			foreach my $dipswitch_name (keys %{$xml->{'dipswitch'}}) {
 				my $shortcut = $xml->{'dipswitch'}->{$dipswitch_name};
-				$sql = "INSERT INTO games_dipswitch (id,game,name,tag,mask) VALUES (".
-							"'$dipswitch_id',".
-							"'".quotify($xml->{'name'})."',".
-							"'".quotify($dipswitch_name)."',".
-							"'".quotify($shortcut->{'tag'})."',".
-							"'".quotify($shortcut->{'mask'})."'".
-						")";
-				$sqlite->do($sql) or warn "Can't insert $sql";
+				$sth_dipswitch->execute(
+					$dipswitch_id, $xml->{'name'}, $dipswitch_name, $shortcut->{'tag'}, $shortcut->{'mask'}
+				) or warn "Can't insert dipswitch";
 
 				$shortcut->{'dipvalue'} = { $shortcut->{'dipvalue'}->{'name'} => $shortcut->{'dipvalue'} } if exists $shortcut->{'dipvalue'}->{'name'} ; # only one element in this hash
 				foreach my $dipvalue_name (keys %{$shortcut->{'dipvalue'}}) {
 					my $shortcut2 = $shortcut->{'dipvalue'}->{$dipvalue_name};
 					$shortcut2->{'default'} = 'no' if !exists $shortcut2->{'default'};
-					$sql = "INSERT INTO games_dipswitch_dipvalue (dipswitch_id,name,'value','default') VALUES (".
-								"'$dipswitch_id',".
-								"'".quotify($dipvalue_name)."',".
-								"'".quotify($shortcut2->{'value'})."',".
-								"'".yesno2bool($shortcut2->{'default'})."'".
-							")";
-					$sqlite->do($sql) or warn "Can't insert $sql";
+					$sth_dipvalue->execute(
+						$dipswitch_id, $dipvalue_name, $shortcut2->{'value'}, yesno2bool($shortcut2->{'default'})
+					) or warn "Can't insert dipswitch_dipvalue";
 				} # end each dipvalue
 
 				$dipswitch_id++;
@@ -287,23 +236,13 @@ sub parse_mamelistxml {
 			$xml->{'adjuster'} = { $xml->{'adjuster'}->{'name'} => $xml->{'adjuster'} } if exists $xml->{'adjuster'}->{'name'} ; # only one element in this hash
 			foreach my $adjuster_name (keys %{$xml->{'adjuster'}}) {
 				my $shortcut = $xml->{'adjuster'}->{$adjuster_name};
-				$sql = "INSERT INTO games_adjuster (game,name,'default') VALUES (".
-							"'".quotify($xml->{'name'})."',".
-							"'".quotify($adjuster_name)."',".
-							"'".quotify($shortcut->{'default'})."'".
-						")";
-				$sqlite->do($sql) or warn "Can't insert $sql";
+				$sth_adjuster->execute($xml->{'name'}, $adjuster_name, $shortcut->{'default'}) or warn "Can't insert adjuster";
 			} # end each ajuster
 
 			$xml->{'softwarelist'} = { $xml->{'softwarelist'}->{'name'} => $xml->{'softwarelist'} } if exists $xml->{'softwarelist'}->{'name'} ; # only one element in this hash
 			foreach my $softwarelist_name (keys %{$xml->{'softwarelist'}}) {
 				my $shortcut = $xml->{'softwarelist'}->{$softwarelist_name};
-				$sql = "INSERT INTO games_softwarelist (game,name,status) VALUES (".
-							"'".quotify($xml->{'name'})."',".
-							"'".quotify($softwarelist_name)."',".
-							"'".quotify($shortcut->{'status'})."'".
-						")";
-				$sqlite->do($sql) or warn "Can't insert $sql";
+				$sth_softwarelist->execute($xml->{'name'}, $softwarelist_name, $shortcut->{'status'}) or warn "Can't insert sth_softwarelist";
 			} # end each softwarelist
 
 
@@ -312,33 +251,22 @@ sub parse_mamelistxml {
 					my %values_seen = ();
 					foreach my $t (@{$xml->{'ramoption'}}) {
 						my $value = 0;
+						my @params = ();
 						if (ref $t eq 'HASH') { # default
-							$sql = "INSERT INTO games_ramoption (game,'value','default') VALUES (".
-										"'".quotify($xml->{'name'})."',".
-										"'".quotify($t->{'content'})."',".
-										"'1'".
-									")";
+							@params = ($xml->{'name'}, $t->{'content'}, 1);
 							my $value = $t->{'content'};
 
 						} else { # normal
-							$sql = "INSERT INTO games_ramoption (game,'value','default') VALUES (".
-										"'".quotify($xml->{'name'})."',".
-										"'$t',".
-										"'0'".
-									")";
+							@params = ($xml->{'name'}, $t, 0);
 							my $value = $t;
 						}
 
-						$sqlite->do($sql) if !exists $values_seen{$value} ; # if first time
+						$sth_ramoption->execute(@params) if !exists $values_seen{$value} ; # if first time
 						$values_seen{$value} = 1;
 					}
+
 				} elsif (ref $xml->{'ramoption'} eq 'HASH') { # only one value
-					$sql = "INSERT INTO games_ramoption (game,'value','default') VALUES (".
-								"'".quotify($xml->{'name'})."',".
-								"'".quotify($xml->{'ramoption'}->{'content'})."',".
-								"'1'".
-							")";
-					$sqlite->do($sql) or warn "Can't insert $sql";
+					$sth_ramoption->execute($xml->{'name'}, $xml->{'ramoption'}->{'content'}, 1) or warn "Can't insert ramoption";
 				}
 			}
 
@@ -346,27 +274,17 @@ sub parse_mamelistxml {
 			$xml->{'configuration'} = { $xml->{'configuration'}->{'name'} => $xml->{'configuration'} } if exists $xml->{'configuration'}->{'name'} ; # only one element in this hash
 			foreach my $configuration (keys %{$xml->{'configuration'}}) {
 				my $shortcut = $xml->{'configuration'}->{$configuration};
-				$sql = "INSERT INTO games_configuration (id,game,name,tag,mask) VALUES (".
-							"'$configuration_id',".
-							"'".quotify($xml->{'name'})."',".
-							"'".quotify($configuration)."',".
-							"'".quotify($shortcut->{'tag'})."',".
-							"'".quotify($shortcut->{'mask'})."'".
-						")";
-				$sqlite->do($sql) or warn "Can't insert $sql";
+				$sth_configuration->execute(
+					$configuration_id, $xml->{'name'}, $configuration, $shortcut->{'tag'}, $shortcut->{'mask'}
+				) or warn "Can't insert configuration";
 
 				$shortcut->{'confsetting'} = { $shortcut->{'confsetting'}->{'name'} => $shortcut->{'confsetting'} } if exists $shortcut->{'confsetting'}->{'name'} ; # only one element in this hash
 				foreach my $confsetting_name (keys %{$shortcut->{'confsetting'}}) {
 					my $shortcut2 = $shortcut->{'confsetting'}->{$confsetting_name};
 					$shortcut2->{'default'} = 'no' if !exists $shortcut2->{'default'};
-
-					$sql = "INSERT INTO games_configuration_confsetting (configuration_id,name,'value','default') VALUES (".
-								"'$configuration_id',".
-								"'".quotify($confsetting_name)."',".
-								"'".quotify($shortcut2->{'value'})."',".
-								"'".yesno2bool($shortcut2->{'default'})."'".
-							")";
-					$sqlite->do($sql) or warn "Can't insert $sql";
+					$sth_confsetting->execute(
+						$configuration_id, $confsetting_name, $shortcut2->{'value'}, yesno2bool($shortcut2->{'default'})
+					) or warn "Can't insert configuration_confsetting";
 				} # end each confsetting
 
 				$configuration_id++;
@@ -376,25 +294,16 @@ sub parse_mamelistxml {
 			$xml->{'category'} = { $xml->{'category'}->{'name'} => $xml->{'category'} } if exists $xml->{'category'}->{'name'} ; # only one element in this hash
 			foreach my $configuration (keys %{$xml->{'category'}}) {
 				my $shortcut = $xml->{'category'}->{$configuration};
-				$sql = "INSERT INTO games_category (id,game,name) VALUES (".
-							"'$category_id',".
-							"'".quotify($xml->{'name'})."',".
-							"'".quotify($configuration)."'".
-						")";
-				$sqlite->do($sql) or warn "Can't insert $sql";
+				$sth_category->execute($category_id, $xml->{'name'}, $configuration) or warn "Can't insert category";
 
 				$shortcut->{'item'} = { $shortcut->{'item'}->{'name'} => $shortcut->{'item'} } if exists $shortcut->{'item'}->{'name'} ; # only one element in this hash
 
 				foreach my $item_name (keys %{$shortcut->{'item'}}) {
 					my $shortcut2 = $shortcut->{'item'}->{$item_name};
 					$shortcut2->{'default'} = 'no' if !exists $shortcut2->{'default'};
-
-					$sql = "INSERT INTO games_category_item (category_id,name,'default') VALUES (".
-								"'$category_id',".
-								"'".quotify($item_name)."',".
-								"'".yesno2bool($shortcut2->{'default'})."'".
-							")";
-					$sqlite->do($sql) or warn "Can't insert $sql";
+					$sth_category_item->execute(
+						$category_id, $item_name, yesno2bool($shortcut2->{'default'})
+					) or warn "Can't insert category_item";
 				} # end each category item
 
 				$category_id++;
@@ -406,48 +315,35 @@ sub parse_mamelistxml {
 				next if !ref $device;
 				my $shortcut = $device;
 
-				if (!$shortcut->{'type'} || !$shortcut->{'tag'}) { next ; }
+				next if !$shortcut->{'type'} || !$shortcut->{'tag'} ;
 
-				$sql = "INSERT INTO games_device (id,game,'type','tag','mandatory','interface') VALUES (".
-							"'$device_id',".
-							"'".quotify($xml->{'name'})."',".
-							"'".quotify($shortcut->{'type'})."',".
-							"'".quotify($shortcut->{'tag'})."',".
-							"'".quotify($shortcut->{'mandatory'})."',".
-							"'".quotify($shortcut->{'interface'})."'".
-						")";
-				$sqlite->do($sql) or warn "Can't insert $sql";
+				$sth_device->execute(
+					$device_id,			$xml->{'name'},				$shortcut->{'type'},
+					$shortcut->{'tag'},	$shortcut->{'mandatory'},	$shortcut->{'interface'}
+				) or warn "Can't insert device";
 
 				$shortcut->{'instance'} = { $shortcut->{'instance'}->{'name'} => $shortcut->{'instance'} } if exists $shortcut->{'instance'}->{'name'} ; # only one element in this hash
 
 				foreach my $instance_name (keys %{$shortcut->{'instance'}}) {
 					my $shortcut2 = $shortcut->{'instance'}->{$instance_name};
-					$sql = "INSERT INTO games_device_instance (device_id,name,briefname) VALUES (".
-								"'$device_id',".
-								"'".quotify($instance_name)."',".
-								"'".quotify($shortcut2->{'briefname'})."'".
-							")";
-					$sqlite->do($sql) or warn "Can't insert $sql";
+					$sth_device_instance->execute(
+						$device_id, $instance_name, $shortcut2->{'briefname'}
+					) or warn "Can't insert device_instance";
 				} # end each device instance
 
 				foreach my $extension_name (keys %{$shortcut->{'extension'}}) {
-					#my $shortcut2 = $shortcut->{'extension'}->{$extension_name};
-					$sqlite->do("INSERT INTO games_device_extension (device_id,name) VALUES ('$device_id','".quotify($extension_name)."')") or warn "Can't insert $sql";
+					$sth_device_extension->execute($device_id, $extension_name) or warn "Can't insert device_extension";
 				} # end each device interface
 
 				$device_id++;
 
 			} # end each device
-		
-			
 
 			printf "\r[%05d] Inserting '%s'                      ", ++$game_done,$xml->{'name'} ;
 			@xml_game = ();			
 
 		} else {
-			if ($in_game) {
-				push @xml_game, $_; # save the stream for futur parsing
-			}
+			push(@xml_game, $_) if $in_game; # save the stream for futur parsing
 		}
 	}
 	close XML;
@@ -497,6 +393,8 @@ EOT
 	$sqlite->do($sql) or die "Can't create 'mameinfo' table";
 
 	my (@infos,$rom_name,$rom_type,$romset_size,$romset_file,$romset_zip);
+	my $sth1 = $sqlite->prepare("INSERT INTO versions (version,date_build,games,delta_games,drivers,info) VALUES (?,?,?,?,?,?)");
+	my $sth2 = $sqlite->prepare("INSERT INTO mameinfo (game,info,romset_size,romset_file,romset_zip) VALUES (?,?,?,?,?)");
 	open(MAMEINFO,'<mameinfo.dat') or die "Can't find 'mameinfo.dat' ($!)";
 	while(<MAMEINFO>) {
 		chomp;
@@ -525,25 +423,22 @@ EOT
 			my %months = qw/january 1 february 2 march 3 april 4 may 5 june 6 july 7 august 8 september 9 october 10 november 11 december 12/;
 			my $date_build = $year.'-'.sprintf('%02d',$months{lc $month}).'-'.sprintf('%02d',$day); # yyyy-mm-dd
 
-			$sql = "INSERT INTO versions (version,date_build,games,delta_games,drivers,info) VALUES ('".
-						quotify($version)."','".
-						quotify($date_build)."','".
-						quotify($total_games)."','".
-						quotify($games_delta)."','".
-						quotify($total_drivers)."','".
-						quotify($info)."')" ;
-			$sqlite->do($sql) or warn "Can't insert $sql";
+			$sth1->execute($version,$date_build,$total_games,$games_delta,$total_drivers,$info) or warn "Can't insert versions ($version)";
 
 		} elsif	(/^\#/) {	# comment
 			next;
+
 		} elsif	(/^\$info=(\S*)$/i) {	# changing rom
 			$rom_name = $1;
+
 		} elsif (/^\$mame$/i) {
 			$rom_type = 'game';
 			next;
+
 		} elsif (/^\$drv$/i) {
 			$rom_type = 'drv';
 			next;
+
 		} elsif (/^Romset:\s*(\d+)\s*kb\s*\/\s*(\d+)\s*files?\s*\/\s*([\d\.\,]+)\s*zip/i) {			# stock romset infos
 			$romset_size	= $1;		# int kb
 			$romset_file	= $2;		# int
@@ -551,21 +446,12 @@ EOT
 			$romset_zip		= $3;		# float kb
 
 		} elsif (/^\$end$/i) {			# validate info in database
-			$sql = "INSERT INTO mameinfo (game,info,romset_size,romset_file,romset_zip) VALUES ('".
-						quotify($rom_name)."','".
-						quotify(trim(join("\n",@infos)))."','".
-						quotify($romset_size)."','".
-						quotify($romset_file)."','".
-						quotify($romset_zip)."')" ;
-			$sqlite->do($sql) or warn "Can't insert $sql";
+			$sth2->execute($rom_name,trim(join("\n",@infos)),$romset_size,$romset_file,$romset_zip) or warn "Can't insert mameinfo ($rom_name)";
 			
 			# clear infos
-			$rom_name		= '';
-			$rom_type		= '';
-			$romset_size	= '';
-			$romset_file	= '';
-			$romset_zip		= '';
-			@infos			= ();
+			$rom_name = $rom_type = $romset_size = $romset_file	= $romset_zip = '';
+			@infos    = ();
+
 		} else {	# get some text
 			push @infos, $_;
 		}
@@ -607,6 +493,8 @@ EOT
 	my $link ;
 	my @roms ;
 	my (@infos);
+	my $sth1 = $sqlite->prepare("INSERT INTO histories (id,history,link) VALUES (?,?,?)");
+	my $sth2 = $sqlite->prepare("INSERT INTO games_histories (game,history_id) VALUES (?,?)");
 	open(HISTORY,'<history.dat') or die "Can't find 'history.dat' ($!)";
 	while(<HISTORY>) {
 		chomp;
@@ -619,19 +507,19 @@ EOT
 			next;
 		} elsif (/^\$end$/i) {			# validate info in database
 			# save history
-			$sqlite->do("INSERT INTO histories (id,history,link) VALUES ('$i','".quotify(trim(join("\n",@infos)))."','".quotify($link)."')") or warn "Can't insert $sql";
+			$sth1->execute($i,trim(join("\n",@infos)),$link) or warn "Can't insert histories ($i)";
 
 			# link history and games
 			foreach (@roms) {
-				$sqlite->do("INSERT INTO games_histories (game,history_id) VALUES ('".quotify($_)."','$i')") or warn "Can't insert $sql";
+				$sth2->execute($_,$i) or warn "Can't insert game_histories ($_,$i)";
 			}
 
 			$i++;
 
 			# clear infos
-			@infos	= ();
-			@roms	= ();
-			$link	= '';
+			@infos = @roms = ();
+			$link  = '';
+
 		} else {	# get some text
 			push @infos, $_;
 		}
@@ -660,6 +548,7 @@ CREATE TABLE IF NOT EXISTS 'nplayers' (
 EOT
 	$sqlite->do($sql) or die "Can't create 'nplayers' table";
 
+	my $sth = $sqlite->prepare("INSERT INTO nplayers (game,players) VALUES (?,?)");
 	open(NPLAYERS,'<nplayers.ini') or die "Can't find 'nplayers.ini' ($!)";
 	while(<NPLAYERS>) {
 		chomp;
@@ -668,7 +557,7 @@ EOT
 			my $nplayers_label	= $2;
 			my @t				= split /\s*\/\s*/ , $nplayers_label ;
 			foreach my $n (@t) {	# split on /
-				$sqlite->do("INSERT INTO nplayers (game,players) VALUES ('".quotify($game)."','".quotify($n)."')") or warn "Can't insert value in nplayers table : $sql";
+				$sth->execute($game,$n) or warn "Can't insert nplayers ($game,$n)";
 			}
 		}
 	}
@@ -698,7 +587,8 @@ EOT
 	$sqlite->do($sql) or die "Can't create 'stories' table";
 
 	my $rom_name ;
-	my (@score);
+	my @score;
+	my $sth = $sqlite->prepare("INSERT INTO stories (game,score) VALUES (?,?)");
 	open(STORY,'<story.dat') or die "Can't find 'story.dat' ($!)";
 	while(<STORY>) {
 		chomp;
@@ -710,7 +600,7 @@ EOT
 		} elsif (/^\$story$/i) {
 			next;
 		} elsif (/^\$end$/i) {			# validate info in database
-			$sqlite->do("INSERT INTO stories (game,score) VALUES ('".quotify($rom_name)."','".quotify(trim(join("\n",@score)))."')") or warn "Can't insert $sql";
+			$sth->execute($rom_name,trim(join("\n",@score))) or warn "Can't insert stories ($rom_name)";
 			
 			# clear infos
 			@score		= ();
@@ -745,6 +635,7 @@ EOT
 	$sqlite->do($sql) or die "Can't create 'categories' table";
 
 	my $version_added = 0 ;
+	my $sth = $sqlite->prepare("INSERT INTO categories (game,categorie,version_added) VALUES (?,?,?)");
 	open(CATVER,'<folders/Catver.ini') or die "Can't find 'folders/Catver.ini' ($!)";
 	while(<CATVER>) {
 		chomp;
@@ -755,7 +646,7 @@ EOT
 			my $categories		= $2;
 			my @categories		= split /\s*\/\s*/ , $categories ;
 			foreach my $categorie (@categories) {	# split on /
-				$sqlite->do("INSERT INTO categories (game,categorie,version_added) VALUES ('".quotify($game)."','".quotify($categorie)."',".quotify($version_added).")") or warn "Can't insert value in categories table";
+				$sth->execute($game,$categorie,$version_added) or warn "Can't insert categories ($game,$categorie,$version_added)";
 			}
 		}
 	}
@@ -813,6 +704,9 @@ EOT
 	print "ok\n";
 
 	# parse files
+	my $sth1 = $sqlite->prepare("INSERT INTO cheats (id,game,cheat,comment) VALUES (?,?,?,?)");
+	my $sth2 = $sqlite->prepare("INSERT INTO cheats_options (cheat_id,option,value) VALUES (?,?,?)");
+
 	find(\&wanted, 'cheats');
 	sub wanted {
 		next if $_ eq '.' || $_ eq '..' || -d || !/\.xml$/;
@@ -838,7 +732,7 @@ EOT
 			}
 			foreach my $cheat (@{$xml->{'cheat'}}) {
 				#print Dumper($cheat);
-				$sqlite->do("INSERT INTO cheats (id,game,cheat,comment) VALUES ('$id','".quotify($game)."','".quotify($cheat->{'desc'})."','".quotify($cheat->{'comment'})."')") or warn "Can't insert value in cheats table";
+				$sth1->execute($id,$game,$cheat->{'desc'},$cheat->{'comment'}) or warn "Can't insert cheat ($id,$game)";
 
 				if (exists $cheat->{'parameter'}->{'item'}) {
 					if (ref $cheat->{'parameter'}->{'item'} ne 'ARRAY') { # there only one parameter -> transform hash to array
@@ -846,7 +740,7 @@ EOT
 					}
 					foreach my $parameter (@{$cheat->{'parameter'}->{'item'}}) {
 						#print "Test ";
-						$sqlite->do("INSERT INTO cheats_options (cheat_id,option,value) VALUES ($id,'".quotify($parameter->{'content'})."','".quotify($parameter->{'value'})."')") or warn "Can't insert value in cheats_options table";
+						$sth2->execute($id,$parameter->{'content'},$parameter->{'value'}) or warn "Can't insert value in cheats_options table";
 					}
 				}
 
@@ -879,7 +773,7 @@ sub parse_series {
 	my $sql = <<EOT ;
 CREATE TABLE IF NOT EXISTS 'series' (
 	'id'			INTEGER NOT NULL,
-	'serie'			TEXT NOT NULL,
+	'serie'			TEXT 	NOT NULL,
 	PRIMARY KEY (id),
 	UNIQUE		(serie)
 );
@@ -888,7 +782,7 @@ EOT
 
 	my $sql = <<EOT ;
 CREATE TABLE IF NOT EXISTS 'games_series' (
-	'game'			TEXT NOT NULL,
+	'game'			TEXT 	NOT NULL,
 	'serie_id'		INTEGER NOT NULL,
 	FOREIGN KEY (serie_id) REFERENCES series(id)
 );
@@ -898,6 +792,8 @@ EOT
 	my $serie = '' ;
 	my $i = 1;
 	my @roms = ();
+	my $sth1 = $sqlite->prepare("INSERT INTO series (id,serie) VALUES (?,?)");
+	my $sth2 = $sqlite->prepare("INSERT INTO games_series (game,serie_id) VALUES (?,?)");
 	open(SERIES,'<folders/series.ini') or die "Can't find 'folders/series.ini' ($!)";
 	while(<SERIES>) {
 		chomp;
@@ -906,11 +802,11 @@ EOT
 		} elsif (/^\[(.+?)\]$/) {		# example : [World Heroes]
 			if ($serie) { # if previous serie register, save in database
 				# save serie name
-				$sqlite->do("INSERT INTO series (id,serie) VALUES ('$i','".quotify(trim($serie))."')") or warn "Can't insert $sql";
+				$sth1->execute($i,trim($serie)) or warn "Can't insert serie ($i,$serie)";
 
 				# save games in serie
 				foreach (@roms) {
-					$sqlite->do("INSERT INTO games_series (game,serie_id) VALUES ('".quotify($_)."','$i')") or warn "Can't insert $sql";
+					$sth2->execute($_,$i) or warn "Can't insert game_serie ($_,$i)";
 				}
 				@roms = ();
 				$i++;
@@ -924,7 +820,7 @@ EOT
 	close SERIES;
 
 	foreach (@roms) {
-		$sqlite->do("INSERT INTO games_series (game,serie_id) VALUES ('".quotify($_)."','$i')") or warn "Can't insert $sql";
+		$sth2->execute($_,$i) or warn "Can't insert game_serie ($_,$i)";
 	}
 
 	print "ok\n";
@@ -964,6 +860,8 @@ EOT
 	my @cmd = ();
 	my $in_cmd = 0;
 	my $i = 1 ;
+	my $sth1 = $sqlite->prepare("INSERT INTO command (id,command) VALUES (?,?)");
+	my $sth2 = $sqlite->prepare("INSERT INTO games_command (game,command_id) VALUES (?,?)");
 	open(COMMAND,'<command.dat') or die "Can't find 'command.dat' ($!)";
 	while(<COMMAND>) {
 		chomp;
@@ -976,11 +874,11 @@ EOT
 			$in_cmd = 1;
 		} elsif (/^\$end$/) {		# end of command list
 			# save info in database
-			$sqlite->do("INSERT INTO command (id,command) VALUES ('$i','".quotify(join("\n",@cmd))."')") or warn "Can't insert $sql";
+			$sth1->execute($i,join("\n",@cmd)) or warn "Can't insert command";
 
 			#print Dumper(\@games);
 			foreach my $game (@games) {
-				$sqlite->do("INSERT INTO games_command (game,command_id) VALUES ('".quotify($game)."','$i')") or warn "Can't insert $sql";
+				$sth2->execute($game,$i) or warn "Can't insert games_command ($game,$i)";
 			}
 
 			$in_cmd = 0;  # reset infos
@@ -993,7 +891,7 @@ EOT
 	close COMMAND;
 
 	foreach my $game (@games) {
-		$sqlite->do("INSERT INTO games_command (game,command_id) VALUES ('".quotify($game)."','$i')") or warn "Can't insert $sql";
+		$sth2->execute($game,$i) or warn "Can't insert games_command ($game,$i)";
 	}
 
 	print "ok\n";
@@ -1013,7 +911,7 @@ sub parse_languages {
 	my $sql = <<EOT ;
 CREATE TABLE IF NOT EXISTS 'languages' (
 	'id'			INTEGER NOT NULL,
-	'language'		TEXT NOT NULL,
+	'language'		TEXT,
 	PRIMARY KEY (id),
 	UNIQUE		(language)
 );
@@ -1023,7 +921,7 @@ EOT
 	my $sql = <<EOT ;
 CREATE TABLE IF NOT EXISTS 'games_languages' (
 	'game'			TEXT NOT NULL,
-	'language_id'	INTEGER NOT NULL,
+	'language_id'	INTEGER,
 	FOREIGN KEY (language_id) REFERENCES languages(id)
 );
 EOT
@@ -1032,6 +930,8 @@ EOT
 	my $language = '' ;
 	my $i = 1;
 	my @roms = ();
+	my $sth1 = $sqlite->prepare("INSERT INTO languages (id,language) VALUES (?,?)");
+	my $sth2 = $sqlite->prepare("INSERT INTO games_languages (game,language_id) VALUES (?,?)");
 	open(LANGUAGES,'<folders/languages.ini') or die "Can't find 'folders/languages.ini' ($!)";
 	while(<LANGUAGES>) {
 		chomp;
@@ -1040,11 +940,11 @@ EOT
 		} elsif (/^\[(.+?)\]$/) {		# example : [French]
 			if ($language) { # if previous serie register, save in database
 				# save language name
-				$sqlite->do("INSERT INTO languages (id,language) VALUES ('$i','".quotify(trim($language))."')") or warn "Can't insert $sql";
+				$sth1->execute($i,trim($language)) or warn "Can't insert languages ($i,$language)";
 
 				# save games in languages
 				foreach (@roms) {
-					$sqlite->do("INSERT INTO games_languages (game,language_id) VALUES ('".quotify($_)."','$i')") or warn "Can't insert $sql";
+					$sth2->execute($_,$i) or warn "Can't insert games_languages ($_,$i)";
 				}
 				@roms = ();
 				$i++;
@@ -1058,7 +958,7 @@ EOT
 	close LANGUAGES;
 
 	foreach (@roms) {
-		$sqlite->do("INSERT INTO games_languages (game,language_id) VALUES ('".quotify($_)."','$i')") or warn "Can't insert $sql";
+		$sth2->execute($_,$i) or warn "Can't insert games_languages ($_,$i)";
 	}
 
 	print "ok\n";
@@ -1084,6 +984,7 @@ EOT
 
 	my $bestgames = '' ;
 	my @roms = ();
+	my $sth = $sqlite->prepare("INSERT INTO bestgames (game,evaluation) VALUES (?,?)");
 	open(BESTGAMES,'<folders/bestgames.ini') or die "Can't find 'folders/bestgames.ini' ($!)";
 	while(<BESTGAMES>) {
 		chomp;
@@ -1093,7 +994,7 @@ EOT
 			if ($bestgames) { # if previous bestgame register, save in database
 				# save games in bestgame
 				foreach (@roms) {
-					$sqlite->do("INSERT INTO bestgames (game,evaluation) VALUES ('".quotify($_)."','".quotify($bestgames)."')") or warn "Can't insert value in bestgames table : $sql";
+					$sth->execute($_,$bestgames) or warn "Can't insert bestgames ($_,$bestgames)";
 				}
 				@roms = ();
 			}
@@ -1106,7 +1007,7 @@ EOT
 	close BESTGAMES;
 
 	foreach (@roms) {
-		$sqlite->do("INSERT INTO bestgames (game,evaluation) VALUES ('".quotify($_)."','".quotify($bestgames)."')") or warn "Can't insert value in bestgames table : $sql";
+		$sth->execute($_,$bestgames) or warn "Can't insert bestgames ($_,$bestgames)";
 	}
 
 	print "ok\n";
@@ -1131,6 +1032,7 @@ EOT
 	$sqlite->do($sql) or die "Can't create 'mature' table";
 
 	my $in_root_folder = 0;
+	my $sth = $sqlite->prepare("INSERT INTO mature (game) VALUES (?)");
 	open(MATURE,'<folders/mature.ini') or die "Can't find 'folders/mature.ini' ($!)";
 	while(<MATURE>) {
 		chomp;
@@ -1138,7 +1040,7 @@ EOT
 			$in_root_folder = 1;
 
 		} elsif (/^.{1,15}$/i && $in_root_folder) { # rom name. Example : aerfboo2
-			$sqlite->do("INSERT INTO mature (game) VALUES ('".quotify($_)."')") or warn "Can't insert value in mature table : $sql";
+			$sth->execute($_) or warn "Can't insert mature ($_)";
 		}
 	}
 	close MATURE;
@@ -1166,6 +1068,7 @@ EOT
 
 	my $genre = '' ;
 	my @roms = ();
+	my $sth = $sqlite->prepare("INSERT INTO genre (game,genre) VALUES (?,?)");
 	open(GENRE,'<folders/genre.ini') or die "Can't find 'folders/genre.ini' ($!)";
 	while(<GENRE>) {
 		chomp;
@@ -1174,8 +1077,9 @@ EOT
 		} elsif (/^\[(.+?)\]$/) {		# example : [0 to 10 (Worst)]
 			if ($genre) { # if previous genre register, save in database
 				# save games in genre
+				
 				foreach (@roms) {
-					$sqlite->do("INSERT INTO genre (game,genre) VALUES ('".quotify($_)."','".quotify($genre)."')") or warn "Can't insert value in genre table : $sql";
+					$sth->execute($_,$genre) or warn "Can't insert genre ($_,$genre)";
 				}
 				@roms = ();
 			}
@@ -1188,7 +1092,7 @@ EOT
 	close GENRE;
 
 	foreach (@roms) {
-		$sqlite->do("INSERT INTO genre (game,genre) VALUES ('".quotify($_)."','".quotify($genre)."')") or warn "Can't insert value in genre table : $sql";
+		$sth->execute($_,$genre) or warn "Can't insert genre ($_,$genre)";
 	}
 
 	print "ok\n";
@@ -1203,30 +1107,29 @@ sub create_table_games {
 	my $sql = <<EOT ;
 CREATE TABLE IF NOT EXISTS 'games'	(
 	'name'					VARCHAR NOT NULL,
-	'sourcefile'			VARCHAR NOT NULL,
-	'isbios'				BOOL	NOT NULL DEFAULT 0,
-	'runnable'				BOOL	NOT NULL DEFAULT 1,
+	'sourcefile'			VARCHAR,
+	'isbios'				BOOL	DEFAULT 0,
+	'runnable'				BOOL	DEFAULT 1,
 	'cloneof'				VARCHAR,
 	'romof'					VARCHAR,
 	'sampleof'				VARCHAR,
-	'description'			VARCHAR NOT NULL,
+	'description'			VARCHAR,
 	'year'					VARCHAR,
 	'manufacturer'			VARCHAR,
-	'sound_channels'		INTEGER NOT NULL,
+	'sound_channels'		INTEGER,
 	'input_service'			BOOL,
 	'input_tilt'			BOOL,
-	'input_players'			INTEGER NOT NULL,
+	'input_players'			INTEGER,
 	'input_buttons'			INTEGER,
 	'input_coins'			INTEGER,
-	'driver_status'			VARCHAR NOT NULL,
-	'driver_emulation'		VARCHAR NOT NULL,
-	'driver_color'			VARCHAR NOT NULL,
-	'driver_sound'			VARCHAR NOT NULL,
-	'driver_graphic'		VARCHAR NOT NULL,
+	'driver_status'			VARCHAR,
+	'driver_emulation'		VARCHAR,
+	'driver_color'			VARCHAR,
+	'driver_sound'			VARCHAR,
+	'driver_graphic'		VARCHAR,
 	'driver_cocktail'		VARCHAR,
 	'driver_protection'		VARCHAR,
-	'driver_savestate'		BOOL	NOT NULL,
-	'driver_palettesize'	INTEGER NOT NULL,
+	'driver_savestate'		BOOL,
 	PRIMARY KEY (name)
 );
 EOT
@@ -1266,8 +1169,8 @@ sub create_table_games_biosset {
 CREATE TABLE IF NOT EXISTS 'games_biosset'	(
 	'game'					VARCHAR NOT NULL,
 	'name'					VARCHAR NOT NULL,
-	'description'			VARCHAR NOT NULL,
-	'default'				BOOL	NOT NULL DEFAULT 0,
+	'description'			VARCHAR,
+	'default'				BOOL DEFAULT 0,
 	PRIMARY KEY (game,name),
 	FOREIGN KEY (game) REFERENCES games(name)
 );
@@ -1283,15 +1186,15 @@ CREATE TABLE IF NOT EXISTS 'games_rom'	(
 	'game'					VARCHAR NOT NULL,
 	'name'					VARCHAR NOT NULL,
 	'bios'					VARCHAR,
-	'size'					INTEGER NOT NULL,
+	'size'					INTEGER,
 	'crc'					VARCHAR,
 	'md5'					VARCHAR,
 	'merge'					VARCHAR,
 	'sha1'					VARCHAR,
 	'region'				VARCHAR,
 	'offset'				INTEGER,
-	'status'				VARCHAR NOT NULL DEFAULT 'good',
-	'optional'				BOOL	NOT NULL DEFAULT 0,
+	'status'				VARCHAR DEFAULT 'good',
+	'optional'				BOOL	DEFAULT 0,
 	PRIMARY KEY (game,name),
 	FOREIGN KEY (game) REFERENCES games(name)
 );
@@ -1328,9 +1231,9 @@ CREATE TABLE IF NOT EXISTS 'games_disk'	(
 	'sha1'					VARCHAR,
 	'merge'					VARCHAR,
 	'region'				VARCHAR,
-	'index'					INTEGER NOT NULL,
-	'status'				VARCHAR NOT NULL DEFAULT 'good',
-	'optional'				BOOL	NOT NULL DEFAULT 0,
+	'index'					INTEGER,
+	'status'				VARCHAR DEFAULT 'good',
+	'optional'				BOOL	DEFAULT 0,
 	PRIMARY KEY (game,name),
 	FOREIGN KEY (game) REFERENCES games(name)
 );
@@ -1379,7 +1282,7 @@ CREATE TABLE IF NOT EXISTS 'games_chip'	(
 	'game'					VARCHAR NOT NULL,
 	'name'					VARCHAR NOT NULL,
 	'tag'					VARCHAR,
-	'type'					VARCHAR NOT NULL,
+	'type'					VARCHAR,
 	'clock'					INTEGER,
 	PRIMARY KEY (game,name),
 	FOREIGN KEY (game) REFERENCES games(name)
@@ -1413,12 +1316,12 @@ sub create_table_games_display {
 	my $sql = <<EOT ;
 CREATE TABLE IF NOT EXISTS 'games_display'	(
 	'game'					VARCHAR NOT NULL,
-	'type'					VARCHAR NOT NULL,
-	'rotate'				INTEGER NOT NULL,
-	'flipx'					BOOL	NOT NULL DEFAULT 0,
+	'type'					VARCHAR,
+	'rotate'				INTEGER,
+	'flipx'					BOOL DEFAULT 0,
 	'width'					INTEGER,
 	'height'				INTEGER,
-	'refresh'				FLOAT NOT NULL,
+	'refresh'				FLOAT,
 	'pixclock'				INTEGER,
 	'htotal'				INTEGER,
 	'hbend'					INTEGER,
@@ -1463,7 +1366,7 @@ CREATE TABLE IF NOT EXISTS 'games_control'	(
 	'maximum'				INTEGER,
 	'sensitivity'			INTEGER,
 	'keydelta'				INTEGER,
-	'reverse'				BOOL NOT NULL,
+	'reverse'				BOOL,
 	PRIMARY KEY (game,type),
 	FOREIGN KEY (game) REFERENCES games(name)
 );
@@ -1479,8 +1382,8 @@ CREATE TABLE IF NOT EXISTS 'games_dipswitch'	(
 	'id'					INTEGER	NOT NULL,
 	'game'					VARCHAR NOT NULL,
 	'name'					VARCHAR NOT NULL,
-	'tag'					VARCHAR NOT NULL,
-	'mask'					INTEGER	NOT NULL,
+	'tag'					VARCHAR,
+	'mask'					INTEGER,
 	PRIMARY KEY (id),
 	UNIQUE (game,name),
 	FOREIGN KEY (game) REFERENCES games(name)
@@ -1493,8 +1396,8 @@ EOT
 CREATE TABLE IF NOT EXISTS 'games_dipswitch_dipvalue'	(
 	'dipswitch_id'			INTEGER NOT NULL,
 	'name'					VARCHAR NOT NULL,
-	'value'					INTEGER NOT NULL,
-	'default'				BOOL	NOT NULL,
+	'value'					INTEGER,
+	'default'				BOOL,
 	PRIMARY KEY (dipswitch_id,name),
 	FOREIGN KEY (dipswitch_id) REFERENCES games_dipswitch(id)
 );
@@ -1509,7 +1412,7 @@ sub create_table_games_adjuster {
 CREATE TABLE IF NOT EXISTS 'games_adjuster'	(
 	'game'					VARCHAR NOT NULL,
 	'name'					VARCHAR NOT NULL,
-	'default'				INTEGER NOT NULL,
+	'default'				INTEGER,
 	PRIMARY KEY (game,name),
 	FOREIGN KEY (game) REFERENCES games(name)
 );
@@ -1523,7 +1426,7 @@ sub create_table_games_softwarelist {
 CREATE TABLE IF NOT EXISTS 'games_softwarelist'	(
 	'game'					VARCHAR NOT NULL,
 	'name'					VARCHAR NOT NULL,
-	'status'				VARCHAR NOT NULL,
+	'status'				VARCHAR,
 	PRIMARY KEY (game,name),
 	FOREIGN KEY (game) REFERENCES games(name)
 );
@@ -1585,8 +1488,8 @@ EOT
 CREATE TABLE IF NOT EXISTS 'games_configuration_confsetting'	(
 	'configuration_id'		INTEGER NOT NULL,
 	'name'					VARCHAR NOT NULL,
-	'value'					INTEGER NOT NULL,
-	'default'				BOOL	NOT NULL,
+	'value'					INTEGER,
+	'default'				BOOL,
 	PRIMARY KEY (configuration_id,name),
 	FOREIGN KEY (configuration_id) REFERENCES games_configuration(id)
 );
@@ -1600,7 +1503,7 @@ sub create_table_games_category {
 CREATE TABLE IF NOT EXISTS 'games_category'	(
 	'id'					INTEGER NOT NULL,
 	'game'					VARCHAR NOT NULL,	
-	'name'					TEXT	NOT NULL,
+	'name'					TEXT,
 	PRIMARY KEY (id),
 	UNIQUE		(game,name),
 	FOREIGN KEY (game) REFERENCES games(name)
@@ -1613,7 +1516,7 @@ EOT
 CREATE TABLE IF NOT EXISTS 'games_category_item'	(
 	'category_id'			INTEGER NOT NULL,
 	'name'					VARCHAR NOT NULL,
-	'default'				BOOL	NOT NULL,
+	'default'				BOOL,
 	PRIMARY KEY (category_id,name),
 	FOREIGN KEY (category_id) REFERENCES games_category(id)
 );
@@ -1643,7 +1546,7 @@ EOT
 CREATE TABLE IF NOT EXISTS 'games_device_instance'	(
 	'device_id'				INTEGER NOT NULL,
 	'name'					TEXT	NOT NULL,
-	'briefname'				TEXT	NOT NULL,
+	'briefname'				TEXT,
 	PRIMARY KEY (device_id,name),
 	FOREIGN KEY (device_id) REFERENCES games_device(id)
 );
@@ -1720,12 +1623,6 @@ sub get_sevenzip_path {
 
 
 ###################################################### USEFUL ###########################################
-
-sub quotify {
-	my $val = shift;
-	$val =~ s/'/''/g;
-	return $val ;
-}
 
 sub trim {
 	my $val = shift;
