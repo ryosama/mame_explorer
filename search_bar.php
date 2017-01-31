@@ -24,20 +24,6 @@ foreach (array('rom_name','hide_clones','manufacturer','from_year','to_year','or
 	if (isset($_GET[$key])) 	 $_SESSION[$key] = $_GET[$key];
 }
 
-if ($_SESSION['from_year'] > $_SESSION['to_year']) {
-	$tmp = $_SESSION['from_year'];
-	$_SESSION['from_year'] = $_SESSION['to_year'];
-	$_SESSION['to_year'] = $tmp;
-	unset($tmp);
-}
-
-if ($_SESSION['limit'] <= 0 || !is_numeric($_SESSION['limit']))
-	$_SESSION['limit']=20;
-
-if ($_SESSION['order_by'] == '')
-	$_SESSION['order_by']='name';
-
-
 // build checkbox
 foreach (array('hide_clones','reverse_order') as $checkbox) {
 	
@@ -56,6 +42,35 @@ foreach (array('hide_clones','reverse_order') as $checkbox) {
 		elseif 	($check==1)
 			$_SESSION[$checkbox] = false;
 	}
+}
+
+
+// default values
+if ($_SESSION['from_year'] == '' || !is_numeric($_SESSION['from_year'])) {
+	$res = $database->query("SELECT MIN(year) as year FROM games WHERE year not like '%??%' LIMIT 0,1") or die("Unable to query database : ".array_pop($database->errorInfo()));
+	$row = $res->fetch(PDO::FETCH_ASSOC);
+	$_SESSION['from_year'] = $row['year'];
+}
+
+if ($_SESSION['to_year'] == '' || !is_numeric($_SESSION['to_year'])) {
+	$res = $database->query("SELECT MAX(year) as year FROM games WHERE year not like '%??%' LIMIT 0,1") or die("Unable to query database : ".array_pop($database->errorInfo()));
+	$row = $res->fetch(PDO::FETCH_ASSOC);
+	$_SESSION['to_year'] = $row['year'];
+}
+
+if ($_SESSION['order_by'] == '')
+	$_SESSION['order_by']='name';
+
+if ($_SESSION['limit'] <= 0 || !is_numeric($_SESSION['limit']))
+	$_SESSION['limit']=20;
+
+
+// invert date if needed
+if ($_SESSION['from_year'] > $_SESSION['to_year']) {
+	$tmp = $_SESSION['from_year'];
+	$_SESSION['from_year'] = $_SESSION['to_year'];
+	$_SESSION['to_year'] = $tmp;
+	unset($tmp);
 }
 
 ?>
@@ -81,22 +96,13 @@ foreach (array('hide_clones','reverse_order') as $checkbox) {
 		<label for="from_year">From</label>
 		<select name="from_year">
 		<?php 	$res = $database->query("SELECT DISTINCT(year) as year FROM games ORDER BY year ASC") or die("Unable to query database : ".array_pop($database->errorInfo()));
-				$years = array();
-				$selected = '' ;
-				$i=0;
 				while($row = $res->fetch(PDO::FETCH_ASSOC)) {
 					$years[] = $row['year'];
-					if ($_SESSION['from_year'] == $row['year'])
-						$selected = $i;
-					$i++;
 				}
 
-				if ($selected == '') // first date
-					$selected = 0;
-
-				for($i=0; $i<sizeof($years) ; $i++) {
-					if ($years[$i] && strpos($years[$i],'?') === false) { ?>
-						<option value="<?=$years[$i]?>"<?=$selected==$i ? ' selected="selected"':''?>><?=$years[$i]?></option>
+				foreach ($years as $year) {
+					if ($year && strpos($year,'?') === false) { ?>
+						<option value="<?=$year?>"<?=$_SESSION['from_year']==$year?' selected="selected"':''?>><?=$year?></option>
 	<?php			}
 				} ?>
 		</select>
@@ -105,23 +111,9 @@ foreach (array('hide_clones','reverse_order') as $checkbox) {
 	<div id="search-to-year">
 	<label for="to_year">to</label>
 	<select name="to_year">
-	<?php 	$res = $database->query("SELECT DISTINCT(year) as year FROM games ORDER BY year ASC") or die("Unable to query database : ".array_pop($database->errorInfo()));
-			$years = array();
-			$selected = '' ;
-			$i=0;
-			while($row = $res->fetch(PDO::FETCH_ASSOC)) {
-				$years[] = $row['year'];
-				if ($_SESSION['to_year'] == $row['year'])
-					$selected = $i;
-					$i++;
-			}
-
-			if ($selected == '') // last date
-				$selected = sizeof($years) - 1;
-
-			for($i=0; $i<sizeof($years) ; $i++) {
-				if ($years[$i] && strpos($years[$i],'?') === false) { ?>
-					<option value="<?=$years[$i]?>"<?=$selected==$i ? ' selected="selected"':''?>><?=$years[$i]?></option>
+	<?php 	foreach ($years as $year) {
+				if ($year && strpos($year,'?') === false) { ?>
+					<option value="<?=$year?>"<?=$_SESSION['to_year']==$year?' selected="selected"':''?>><?=$year?></option>
 	<?php		}
 			} ?>
 	</select>

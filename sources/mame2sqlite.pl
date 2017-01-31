@@ -29,6 +29,7 @@ parse_series();
 parse_command();
 parse_languages();
 parse_bestgames();
+parse_mature();
 
 $sqlite->commit();
 $sqlite->disconnect();
@@ -1128,6 +1129,42 @@ EOT
 
 	print "ok\n";
 }
+
+
+
+sub parse_mature {
+	if (!-e 'folders/mature.ini') {
+		print "'folders/mature.ini' not found\nYou can download it at http://www.progettoemma.net/?catver\n";
+		return ;
+	}
+	print "Parse 'folders/mature.ini'... ";
+
+	$sqlite->do("DROP TABLE IF EXISTS 'mature'") or die "Can't drop 'mature' table";
+	my $sql = <<EOT ;
+CREATE TABLE IF NOT EXISTS 'mature' (
+	'game'			VARCHAR NOT NULL,
+	PRIMARY KEY (game)
+);
+EOT
+	$sqlite->do($sql) or die "Can't create 'mature' table";
+
+	my $in_root_folder = 0;
+	open(MATURE,'<folders/mature.ini') or die "Can't find 'folders/mature.ini' ($!)";
+	while(<MATURE>) {
+		chomp;
+		if (/^\[(?:FOLDER_SETTINGS|ROOT_FOLDER)\]$/i) {
+			$in_root_folder = 1;
+
+		} elsif (/^.{1,15}$/i && $in_root_folder) {
+			my $sql = "INSERT INTO mature (game) VALUES ('".quotify($_)."')";
+			$sqlite->do($sql) or warn "Can't insert value in mature table : $sql";		
+		}
+	}
+	close MATURE;
+
+	print "ok\n";
+}
+
 
 
 ###################################################### CREATE TABLES ###########################################

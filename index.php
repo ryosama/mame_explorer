@@ -151,9 +151,9 @@ foreach ($fields as $field_name => $field_type) {
 		</div>
 <?php
 	}
-}
+} ?>
 
-		$res = $database->query("SELECT * FROM nplayers WHERE game='$game_name_escape'") or die("Unable to query database : ".array_pop($database->errorInfo()));
+<?php 	$res = $database->query("SELECT * FROM nplayers WHERE game='$game_name_escape'") or die("Unable to query database : ".array_pop($database->errorInfo()));
 		while($row = $res->fetch(PDO::FETCH_ASSOC)) { ?>
 			<div id="game_nplayers" class="info">
 				<span class="labels">Number of players</span>
@@ -186,18 +186,31 @@ foreach ($fields as $field_name => $field_type) {
 		</div>
 <?php
 		$res = $database->query("SELECT L.language FROM languages L LEFT JOIN games_languages GL ON L.id=GL.language_id WHERE GL.game='$game_name_escape'") or die("Unable to query database : ".array_pop($database->errorInfo()));
-		$row = $res->fetch(PDO::FETCH_ASSOC); ?>
-		<div id="game_language" class="info">
-			<span class="labels">Language</span>
-			<span class="values"><?=$row['language']?></span>
-		</div>
+		$row = $res->fetch(PDO::FETCH_ASSOC);
+		if (strlen($row['language'])>0) { ?>
+			<div id="game_language" class="info">
+				<span class="labels">Language</span>
+				<span class="values"><?=$row['language']?></span>
+			</div>
+<?php   } ?>
 <?php
 		$res = $database->query("SELECT evaluation FROM bestgames WHERE game='$game_name_escape'") or die("Unable to query database : ".array_pop($database->errorInfo()));
-		$row = $res->fetch(PDO::FETCH_ASSOC); ?>
-		<div id="game_evaluation" class="info">
-			<span class="labels">Evaluation</span>
-			<span class="values"><?=$row['evaluation']?></span>
-		</div>
+		$row = $res->fetch(PDO::FETCH_ASSOC);
+		if (strlen($row['evaluation'])>0) { ?>
+			<div id="game_evaluation" class="info">
+				<span class="labels">Evaluation</span>
+				<span class="values"><?=$row['evaluation']?></span>
+			</div>
+<?php   } ?>
+<?php
+		$res = $database->query("SELECT count(*) as mature FROM mature WHERE game='$game_name_escape'") or die("Unable to query database : ".array_pop($database->errorInfo()));
+		$row = $res->fetch(PDO::FETCH_ASSOC);
+		if ($row['mature'] > 0) { ?>
+			<div id="game_mature" class="info">
+				<span class="labels">Mature</span>
+				<span class="values">This game is for adults only</span>
+			</div>
+<?php   } ?>
 </div>
 
 
