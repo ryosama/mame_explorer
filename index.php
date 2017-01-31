@@ -211,6 +211,15 @@ foreach ($fields as $field_name => $field_type) {
 				<span class="values">This game is for adults only</span>
 			</div>
 <?php   } ?>
+<?php
+		$res = $database->query("SELECT genre FROM genre WHERE game='$game_name_escape'") or die("Unable to query database : ".array_pop($database->errorInfo()));
+		$row = $res->fetch(PDO::FETCH_ASSOC);
+		if (strlen($row['genre']) > 0) { ?>
+			<div id="game_genre" class="info">
+				<span class="labels">Genre</span>
+				<span class="values"><?=$row['genre']?></span>
+			</div>
+<?php   } ?>
 </div>
 
 

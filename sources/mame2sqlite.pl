@@ -17,7 +17,7 @@ $sqlite->do("PRAGMA foreign_keys = ON;") or die "Can't enable foreign_keys pragm
 
 my $sql;
 
-#create table
+create table
 parse_mamelistxml();
 parse_mameinfo();
 parse_nplayers();
@@ -30,6 +30,7 @@ parse_command();
 parse_languages();
 parse_bestgames();
 parse_mature();
+parse_genre();
 
 $sqlite->commit();
 $sqlite->disconnect();
@@ -99,32 +100,32 @@ sub parse_mamelistxml {
 			$xml->{'input'}->{'tilt'}		= 'no'			if !exists $xml->{'input'}->{'tilt'};
 
 			$sql = "INSERT INTO games (name,sourcefile,isbios,runnable,cloneof,romof,sampleof,description,year,manufacturer,sound_channels,input_service,input_tilt,input_players,input_buttons,input_coins,driver_status,driver_emulation,driver_color,driver_sound,driver_graphic,driver_cocktail,driver_protection,driver_savestate,driver_palettesize) VALUES (".
-				"'".quotify($xml->{'name'})."',".
-				"'".quotify($xml->{'sourcefile'})."',".
-				"'".yesno2bool($xml->{'isbios'})."',".
-				"'".yesno2bool($xml->{'runnable'})."',".
-				"'".quotify($xml->{'cloneof'})."',".
-				"'".quotify($xml->{'romof'})."',".
-				"'".quotify($xml->{'sampleof'})."',".
-				"'".quotify($xml->{'description'})."',".
-				"'".quotify($xml->{'year'})."',".
-				"'".quotify($xml->{'manufacturer'})."',".
-				"'".quotify($xml->{'sound'}->{'channels'})."',".
-				"'".yesno2bool($xml->{'input'}->{'service'})."',".
-				"'".yesno2bool($xml->{'input'}->{'tilt'})."',".
-				"'".quotify($xml->{'input'}->{'players'})."',".
-				"'".quotify($xml->{'input'}->{'buttons'})."',".
-				"'".quotify($xml->{'input'}->{'coins'})."',".
-				"'".quotify($xml->{'driver'}->{'status'})."',".
-				"'".quotify($xml->{'driver'}->{'emulation'})."',".
-				"'".quotify($xml->{'driver'}->{'color'})."',".
-				"'".quotify($xml->{'driver'}->{'sound'})."',".
-				"'".quotify($xml->{'driver'}->{'graphic'})."',".
-				"'".quotify($xml->{'driver'}->{'cocktail'})."',".
-				"'".quotify($xml->{'driver'}->{'protection'})."',".
-				"'".quotify($xml->{'driver'}->{'savestate'})."',".
-				"'".quotify($xml->{'driver'}->{'palettesize'})."'".
-			")";
+						"'".quotify($xml->{'name'})."',".
+						"'".quotify($xml->{'sourcefile'})."',".
+						"'".yesno2bool($xml->{'isbios'})."',".
+						"'".yesno2bool($xml->{'runnable'})."',".
+						"'".quotify($xml->{'cloneof'})."',".
+						"'".quotify($xml->{'romof'})."',".
+						"'".quotify($xml->{'sampleof'})."',".
+						"'".quotify($xml->{'description'})."',".
+						"'".quotify($xml->{'year'})."',".
+						"'".quotify($xml->{'manufacturer'})."',".
+						"'".quotify($xml->{'sound'}->{'channels'})."',".
+						"'".yesno2bool($xml->{'input'}->{'service'})."',".
+						"'".yesno2bool($xml->{'input'}->{'tilt'})."',".
+						"'".quotify($xml->{'input'}->{'players'})."',".
+						"'".quotify($xml->{'input'}->{'buttons'})."',".
+						"'".quotify($xml->{'input'}->{'coins'})."',".
+						"'".quotify($xml->{'driver'}->{'status'})."',".
+						"'".quotify($xml->{'driver'}->{'emulation'})."',".
+						"'".quotify($xml->{'driver'}->{'color'})."',".
+						"'".quotify($xml->{'driver'}->{'sound'})."',".
+						"'".quotify($xml->{'driver'}->{'graphic'})."',".
+						"'".quotify($xml->{'driver'}->{'cocktail'})."',".
+						"'".quotify($xml->{'driver'}->{'protection'})."',".
+						"'".quotify($xml->{'driver'}->{'savestate'})."',".
+						"'".quotify($xml->{'driver'}->{'palettesize'})."'".
+					")";
 			$sqlite->do($sql) or warn "Can't insert $sql";
 
 			$xml->{'biosset'} = { $xml->{'biosset'}->{'name'} => $xml->{'biosset'} } if exists $xml->{'biosset'}->{'name'} ; # only one element in this hash
@@ -132,11 +133,11 @@ sub parse_mamelistxml {
 				my $shortcut = $xml->{'biosset'}->{$biosset_name};
 				$shortcut->{'default'} = 'no' if !exists $shortcut->{'default'};
 				$sql = "INSERT INTO games_biosset (game,name,description,'default') VALUES (".
-					"'".quotify($xml->{'name'})."',".
-					"'".quotify($biosset_name)."',".
-					"'".quotify($shortcut->{'description'})."',".
-					"'".quotify($shortcut->{'default'})."'".
-				")";
+							"'".quotify($xml->{'name'})."',".
+							"'".quotify($biosset_name)."',".
+							"'".quotify($shortcut->{'description'})."',".
+							"'".quotify($shortcut->{'default'})."'".
+						")";
 				$sqlite->do($sql) or warn "Can't insert $sql";
 			} # end each disk
 
@@ -146,19 +147,19 @@ sub parse_mamelistxml {
 				$shortcut->{'status'} = 'good' if !exists $shortcut->{'status'};
 				$shortcut->{'optional'} = 'no' if !exists $shortcut->{'optional'};
 				$sql = "INSERT INTO games_rom (game,name,bios,size,crc,md5,sha1,merge,region,offset,status,optional) VALUES (".
-					"'".quotify($xml->{'name'})."',".
-					"'".quotify($rom_name)."',".
-					"'".quotify($shortcut->{'bios'})."',".
-					"'".quotify($shortcut->{'size'})."',".
-					"'".quotify($shortcut->{'crc'})."',".
-					"'".quotify($shortcut->{'md5'})."',".
-					"'".quotify($shortcut->{'sha1'})."',".
-					"'".quotify($shortcut->{'merge'})."',".
-					"'".quotify($shortcut->{'region'})."',".
-					"'".quotify($shortcut->{'offset'})."',".
-					"'".quotify($shortcut->{'status'})."',".
-					"'".yesno2bool($shortcut->{'optional'})."'".
-				")";
+							"'".quotify($xml->{'name'})."',".
+							"'".quotify($rom_name)."',".
+							"'".quotify($shortcut->{'bios'})."',".
+							"'".quotify($shortcut->{'size'})."',".
+							"'".quotify($shortcut->{'crc'})."',".
+							"'".quotify($shortcut->{'md5'})."',".
+							"'".quotify($shortcut->{'sha1'})."',".
+							"'".quotify($shortcut->{'merge'})."',".
+							"'".quotify($shortcut->{'region'})."',".
+							"'".quotify($shortcut->{'offset'})."',".
+							"'".quotify($shortcut->{'status'})."',".
+							"'".yesno2bool($shortcut->{'optional'})."'".
+						")";
 				$sqlite->do($sql) or warn "Can't insert $sql";
 			} # end each rom
 
@@ -168,25 +169,25 @@ sub parse_mamelistxml {
 				$shortcut->{'status'} = 'good' if !exists $shortcut->{'status'};
 				$shortcut->{'optional'} = 'no' if !exists $shortcut->{'optional'};
 				$sql = "INSERT INTO games_disk (game,name,md5,sha1,merge,region,'index',status,optional) VALUES (".
-					"'".quotify($xml->{'name'})."',".
-					"'".quotify($disk_name)."',".
-					"'".quotify($shortcut->{'md5'})."',".
-					"'".quotify($shortcut->{'sha1'})."',".
-					"'".quotify($shortcut->{'merge'})."',".
-					"'".quotify($shortcut->{'region'})."',".
-					"'".quotify($shortcut->{'index'})."',".
-					"'".quotify($shortcut->{'status'})."',".
-					"'".yesno2bool($shortcut->{'optional'})."'".
-				")";
+							"'".quotify($xml->{'name'})."',".
+							"'".quotify($disk_name)."',".
+							"'".quotify($shortcut->{'md5'})."',".
+							"'".quotify($shortcut->{'sha1'})."',".
+							"'".quotify($shortcut->{'merge'})."',".
+							"'".quotify($shortcut->{'region'})."',".
+							"'".quotify($shortcut->{'index'})."',".
+							"'".quotify($shortcut->{'status'})."',".
+							"'".yesno2bool($shortcut->{'optional'})."'".
+						")";
 				$sqlite->do($sql) or warn "Can't insert $sql";
 			} # end each disk
 
 			$xml->{'sample'} = { $xml->{'sample'}->{'name'} => $xml->{'sample'} } if exists $xml->{'sample'}->{'name'} ; # only one element in this hash
 			foreach my $sample_name (keys %{$xml->{'sample'}}) {
 				$sql = "INSERT INTO games_sample (game,name) VALUES (".
-					"'".quotify($xml->{'name'})."',".
-					"'".quotify($sample_name)."'".
-				")";
+							"'".quotify($xml->{'name'})."',".
+							"'".quotify($sample_name)."'".
+						")";
 				$sqlite->do($sql) or warn "Can't insert $sql";
 			} # end each sample
 
@@ -194,12 +195,12 @@ sub parse_mamelistxml {
 			foreach my $chip_name (keys %{$xml->{'chip'}}) {
 				my $shortcut = $xml->{'chip'}->{$chip_name};
 				$sql = "INSERT INTO games_chip (game,name,tag,'type',clock) VALUES (".
-					"'".quotify($xml->{'name'})."',".
-					"'".quotify($chip_name)."',".
-					"'".quotify($shortcut->{'tag'})."',".
-					"'".quotify($shortcut->{'type'})."',".
-					"'".quotify($shortcut->{'clock'})."'".
-				")";
+							"'".quotify($xml->{'name'})."',".
+							"'".quotify($chip_name)."',".
+							"'".quotify($shortcut->{'tag'})."',".
+							"'".quotify($shortcut->{'type'})."',".
+							"'".quotify($shortcut->{'clock'})."'".
+						")";
 				$sqlite->do($sql) or warn "Can't insert $sql";
 			} # end each chip
 
@@ -207,21 +208,21 @@ sub parse_mamelistxml {
 			foreach my $display (@{$xml->{'display'}}) {
 				$display->{'flipx'} = 'no' if !exists $display->{'flipx'};
 				$sql = "INSERT INTO games_display (game,'type',rotate,flipx,width,height,refresh,pixclock,htotal,hbend,hbstart,vtotal,vbend,vbstart) VALUES (".
-					"'".quotify($xml->{'name'})."',".
-					"'".quotify($display->{'type'})."',".
-					"'".quotify($display->{'rotate'})."',".
-					"'".yesno2bool($display->{'flipx'})."',".
-					"'".quotify($display->{'width'})."',".
-					"'".quotify($display->{'height'})."',".
-					"'".quotify($display->{'refresh'})."',".
-					"'".quotify($display->{'pixclock'})."',".
-					"'".quotify($display->{'htotal'})."',".
-					"'".quotify($display->{'hbend'})."',".
-					"'".quotify($display->{'hbstart'})."',".
-					"'".quotify($display->{'vtotal'})."',".
-					"'".quotify($display->{'vbend'})."',".
-					"'".quotify($display->{'vbstart'})."'".
-				")";
+							"'".quotify($xml->{'name'})."',".
+							"'".quotify($display->{'type'})."',".
+							"'".quotify($display->{'rotate'})."',".
+							"'".yesno2bool($display->{'flipx'})."',".
+							"'".quotify($display->{'width'})."',".
+							"'".quotify($display->{'height'})."',".
+							"'".quotify($display->{'refresh'})."',".
+							"'".quotify($display->{'pixclock'})."',".
+							"'".quotify($display->{'htotal'})."',".
+							"'".quotify($display->{'hbend'})."',".
+							"'".quotify($display->{'hbstart'})."',".
+							"'".quotify($display->{'vtotal'})."',".
+							"'".quotify($display->{'vbend'})."',".
+							"'".quotify($display->{'vbstart'})."'".
+						")";
 				$sqlite->do($sql) or warn "Can't insert $sql";
 			} # end each display
 
@@ -241,15 +242,15 @@ sub parse_mamelistxml {
 				my $shortcut = $xml->{'input'}->{'control'}->{$control_type};
 				$shortcut->{'reverse'} = 'no' if !exists $shortcut->{'reverse'};
 				$sql = "INSERT INTO games_control (game,'type',ways,minimum,maximum,sensitivity,keydelta,reverse) VALUES (".
-					"'".quotify($xml->{'name'})."',".
-					"'".quotify($control_type)."',".
-					"'".quotify($shortcut->{'ways'})."',".
-					"'".quotify($shortcut->{'minimum'})."',".
-					"'".quotify($shortcut->{'maximum'})."',".
-					"'".quotify($shortcut->{'sensitivity'})."',".
-					"'".quotify($shortcut->{'keydelta'})."',".
-					"'".yesno2bool($shortcut->{'reverse'})."'".
-				")";
+							"'".quotify($xml->{'name'})."',".
+							"'".quotify($control_type)."',".
+							"'".quotify($shortcut->{'ways'})."',".
+							"'".quotify($shortcut->{'minimum'})."',".
+							"'".quotify($shortcut->{'maximum'})."',".
+							"'".quotify($shortcut->{'sensitivity'})."',".
+							"'".quotify($shortcut->{'keydelta'})."',".
+							"'".yesno2bool($shortcut->{'reverse'})."'".
+						")";
 				$sqlite->do($sql) or warn "Can't insert $sql";
 			} # end each control
 	
@@ -258,12 +259,12 @@ sub parse_mamelistxml {
 			foreach my $dipswitch_name (keys %{$xml->{'dipswitch'}}) {
 				my $shortcut = $xml->{'dipswitch'}->{$dipswitch_name};
 				$sql = "INSERT INTO games_dipswitch (id,game,name,tag,mask) VALUES (".
-					"'".$dipswitch_id."',".
-					"'".quotify($xml->{'name'})."',".
-					"'".quotify($dipswitch_name)."',".
-					"'".quotify($shortcut->{'tag'})."',".
-					"'".quotify($shortcut->{'mask'})."'".
-				")";
+							"'$dipswitch_id',".
+							"'".quotify($xml->{'name'})."',".
+							"'".quotify($dipswitch_name)."',".
+							"'".quotify($shortcut->{'tag'})."',".
+							"'".quotify($shortcut->{'mask'})."'".
+						")";
 				$sqlite->do($sql) or warn "Can't insert $sql";
 
 				$shortcut->{'dipvalue'} = { $shortcut->{'dipvalue'}->{'name'} => $shortcut->{'dipvalue'} } if exists $shortcut->{'dipvalue'}->{'name'} ; # only one element in this hash
@@ -271,11 +272,11 @@ sub parse_mamelistxml {
 					my $shortcut2 = $shortcut->{'dipvalue'}->{$dipvalue_name};
 					$shortcut2->{'default'} = 'no' if !exists $shortcut2->{'default'};
 					$sql = "INSERT INTO games_dipswitch_dipvalue (dipswitch_id,name,'value','default') VALUES (".
-						"'".$dipswitch_id."',".
-						"'".quotify($dipvalue_name)."',".
-						"'".quotify($shortcut2->{'value'})."',".
-						"'".yesno2bool($shortcut2->{'default'})."'".
-					")";
+								"'$dipswitch_id',".
+								"'".quotify($dipvalue_name)."',".
+								"'".quotify($shortcut2->{'value'})."',".
+								"'".yesno2bool($shortcut2->{'default'})."'".
+							")";
 					$sqlite->do($sql) or warn "Can't insert $sql";
 				} # end each dipvalue
 
@@ -287,10 +288,10 @@ sub parse_mamelistxml {
 			foreach my $adjuster_name (keys %{$xml->{'adjuster'}}) {
 				my $shortcut = $xml->{'adjuster'}->{$adjuster_name};
 				$sql = "INSERT INTO games_adjuster (game,name,'default') VALUES (".
-					"'".quotify($xml->{'name'})."',".
-					"'".quotify($adjuster_name)."',".
-					"'".quotify($shortcut->{'default'})."'".
-				")";
+							"'".quotify($xml->{'name'})."',".
+							"'".quotify($adjuster_name)."',".
+							"'".quotify($shortcut->{'default'})."'".
+						")";
 				$sqlite->do($sql) or warn "Can't insert $sql";
 			} # end each ajuster
 
@@ -298,10 +299,10 @@ sub parse_mamelistxml {
 			foreach my $softwarelist_name (keys %{$xml->{'softwarelist'}}) {
 				my $shortcut = $xml->{'softwarelist'}->{$softwarelist_name};
 				$sql = "INSERT INTO games_softwarelist (game,name,status) VALUES (".
-					"'".quotify($xml->{'name'})."',".
-					"'".quotify($softwarelist_name)."',".
-					"'".quotify($shortcut->{'status'})."'".
-				")";
+							"'".quotify($xml->{'name'})."',".
+							"'".quotify($softwarelist_name)."',".
+							"'".quotify($shortcut->{'status'})."'".
+						")";
 				$sqlite->do($sql) or warn "Can't insert $sql";
 			} # end each softwarelist
 
@@ -313,20 +314,19 @@ sub parse_mamelistxml {
 						my $value = 0;
 						if (ref $t eq 'HASH') { # default
 							$sql = "INSERT INTO games_ramoption (game,'value','default') VALUES (".
-								"'".quotify($xml->{'name'})."',".
-								"'".quotify($t->{'content'})."',".
-								"'1'".
-							")";
+										"'".quotify($xml->{'name'})."',".
+										"'".quotify($t->{'content'})."',".
+										"'1'".
+									")";
 							my $value = $t->{'content'};
 
 						} else { # normal
 							$sql = "INSERT INTO games_ramoption (game,'value','default') VALUES (".
-								"'".quotify($xml->{'name'})."',".
-								"'$t',".
-								"'0'".
-							")";
+										"'".quotify($xml->{'name'})."',".
+										"'$t',".
+										"'0'".
+									")";
 							my $value = $t;
-							
 						}
 
 						$sqlite->do($sql) if !exists $values_seen{$value} ; # if first time
@@ -347,12 +347,12 @@ sub parse_mamelistxml {
 			foreach my $configuration (keys %{$xml->{'configuration'}}) {
 				my $shortcut = $xml->{'configuration'}->{$configuration};
 				$sql = "INSERT INTO games_configuration (id,game,name,tag,mask) VALUES (".
-					"'".$configuration_id."',".
-					"'".quotify($xml->{'name'})."',".
-					"'".quotify($configuration)."',".
-					"'".quotify($shortcut->{'tag'})."',".
-					"'".quotify($shortcut->{'mask'})."'".
-				")";
+							"'$configuration_id',".
+							"'".quotify($xml->{'name'})."',".
+							"'".quotify($configuration)."',".
+							"'".quotify($shortcut->{'tag'})."',".
+							"'".quotify($shortcut->{'mask'})."'".
+						")";
 				$sqlite->do($sql) or warn "Can't insert $sql";
 
 				$shortcut->{'confsetting'} = { $shortcut->{'confsetting'}->{'name'} => $shortcut->{'confsetting'} } if exists $shortcut->{'confsetting'}->{'name'} ; # only one element in this hash
@@ -361,11 +361,11 @@ sub parse_mamelistxml {
 					$shortcut2->{'default'} = 'no' if !exists $shortcut2->{'default'};
 
 					$sql = "INSERT INTO games_configuration_confsetting (configuration_id,name,'value','default') VALUES (".
-						"'".$configuration_id."',".
-						"'".quotify($confsetting_name)."',".
-						"'".quotify($shortcut2->{'value'})."',".
-						"'".yesno2bool($shortcut2->{'default'})."'".
-					")";
+								"'$configuration_id',".
+								"'".quotify($confsetting_name)."',".
+								"'".quotify($shortcut2->{'value'})."',".
+								"'".yesno2bool($shortcut2->{'default'})."'".
+							")";
 					$sqlite->do($sql) or warn "Can't insert $sql";
 				} # end each confsetting
 
@@ -377,22 +377,23 @@ sub parse_mamelistxml {
 			foreach my $configuration (keys %{$xml->{'category'}}) {
 				my $shortcut = $xml->{'category'}->{$configuration};
 				$sql = "INSERT INTO games_category (id,game,name) VALUES (".
-					"'".$category_id."',".
-					"'".quotify($xml->{'name'})."',".
-					"'".quotify($configuration)."'".
-				")";
+							"'$category_id',".
+							"'".quotify($xml->{'name'})."',".
+							"'".quotify($configuration)."'".
+						")";
 				$sqlite->do($sql) or warn "Can't insert $sql";
 
 				$shortcut->{'item'} = { $shortcut->{'item'}->{'name'} => $shortcut->{'item'} } if exists $shortcut->{'item'}->{'name'} ; # only one element in this hash
+
 				foreach my $item_name (keys %{$shortcut->{'item'}}) {
 					my $shortcut2 = $shortcut->{'item'}->{$item_name};
 					$shortcut2->{'default'} = 'no' if !exists $shortcut2->{'default'};
 
 					$sql = "INSERT INTO games_category_item (category_id,name,'default') VALUES (".
-						"'".$category_id."',".
-						"'".quotify($item_name)."',".
-						"'".yesno2bool($shortcut2->{'default'})."'".
-					")";
+								"'$category_id',".
+								"'".quotify($item_name)."',".
+								"'".yesno2bool($shortcut2->{'default'})."'".
+							")";
 					$sqlite->do($sql) or warn "Can't insert $sql";
 				} # end each category item
 
@@ -407,37 +408,31 @@ sub parse_mamelistxml {
 
 				if (!$shortcut->{'type'} || !$shortcut->{'tag'}) { next ; }
 
-
 				$sql = "INSERT INTO games_device (id,game,'type','tag','mandatory','interface') VALUES (".
-					"'".$device_id."',".
-					"'".quotify($xml->{'name'})."',".
-					"'".quotify($shortcut->{'type'})."',".
-					"'".quotify($shortcut->{'tag'})."',".
-					"'".quotify($shortcut->{'mandatory'})."',".
-					"'".quotify($shortcut->{'interface'})."'".
-				")";
+							"'$device_id',".
+							"'".quotify($xml->{'name'})."',".
+							"'".quotify($shortcut->{'type'})."',".
+							"'".quotify($shortcut->{'tag'})."',".
+							"'".quotify($shortcut->{'mandatory'})."',".
+							"'".quotify($shortcut->{'interface'})."'".
+						")";
 				$sqlite->do($sql) or warn "Can't insert $sql";
 
 				$shortcut->{'instance'} = { $shortcut->{'instance'}->{'name'} => $shortcut->{'instance'} } if exists $shortcut->{'instance'}->{'name'} ; # only one element in this hash
+
 				foreach my $instance_name (keys %{$shortcut->{'instance'}}) {
 					my $shortcut2 = $shortcut->{'instance'}->{$instance_name};
-
 					$sql = "INSERT INTO games_device_instance (device_id,name,briefname) VALUES (".
-						"'".$device_id."',".
-						"'".quotify($instance_name)."',".
-						"'".quotify($shortcut2->{'briefname'})."'".
-					")";
+								"'$device_id',".
+								"'".quotify($instance_name)."',".
+								"'".quotify($shortcut2->{'briefname'})."'".
+							")";
 					$sqlite->do($sql) or warn "Can't insert $sql";
 				} # end each device instance
 
 				foreach my $extension_name (keys %{$shortcut->{'extension'}}) {
-					my $shortcut2 = $shortcut->{'extension'}->{$extension_name};
-
-					$sql = "INSERT INTO games_device_extension (device_id,name) VALUES (".
-						"'".$device_id."',".
-						"'".quotify($extension_name)."'".
-					")";
-					$sqlite->do($sql) or warn "Can't insert $sql";
+					#my $shortcut2 = $shortcut->{'extension'}->{$extension_name};
+					$sqlite->do("INSERT INTO games_device_extension (device_id,name) VALUES ('$device_id','".quotify($extension_name)."')") or warn "Can't insert $sql";
 				} # end each device interface
 
 				$device_id++;
@@ -530,12 +525,13 @@ EOT
 			my %months = qw/january 1 february 2 march 3 april 4 may 5 june 6 july 7 august 8 september 9 october 10 november 11 december 12/;
 			my $date_build = $year.'-'.sprintf('%02d',$months{lc $month}).'-'.sprintf('%02d',$day); # yyyy-mm-dd
 
-			$sql = "INSERT INTO versions (version,date_build,games,delta_games,drivers,info) VALUES ('".	quotify($version)."','".
-																											quotify($date_build)."','".
-																											quotify($total_games)."','".
-																											quotify($games_delta)."','".
-																											quotify($total_drivers)."','".
-																											quotify($info)."')" ;
+			$sql = "INSERT INTO versions (version,date_build,games,delta_games,drivers,info) VALUES ('".
+						quotify($version)."','".
+						quotify($date_build)."','".
+						quotify($total_games)."','".
+						quotify($games_delta)."','".
+						quotify($total_drivers)."','".
+						quotify($info)."')" ;
 			$sqlite->do($sql) or warn "Can't insert $sql";
 
 		} elsif	(/^\#/) {	# comment
@@ -553,12 +549,14 @@ EOT
 			$romset_file	= $2;		# int
 			$romset_zip		=~ s/,/./;	# convert 2,56 to 2.56
 			$romset_zip		= $3;		# float kb
+
 		} elsif (/^\$end$/i) {			# validate info in database
-			$sql = "INSERT INTO mameinfo (game,info,romset_size,romset_file,romset_zip) VALUES ('".	quotify($rom_name)."','".
-																									quotify(trim(join("\n",@infos)))."','".
-																									quotify($romset_size)."','".
-																									quotify($romset_file)."','".
-																									quotify($romset_zip)."')" ;
+			$sql = "INSERT INTO mameinfo (game,info,romset_size,romset_file,romset_zip) VALUES ('".
+						quotify($rom_name)."','".
+						quotify(trim(join("\n",@infos)))."','".
+						quotify($romset_size)."','".
+						quotify($romset_file)."','".
+						quotify($romset_zip)."')" ;
 			$sqlite->do($sql) or warn "Can't insert $sql";
 			
 			# clear infos
@@ -621,13 +619,11 @@ EOT
 			next;
 		} elsif (/^\$end$/i) {			# validate info in database
 			# save history
-			$sql = "INSERT INTO histories (id,history,link) VALUES ('$i','".quotify(trim(join("\n",@infos)))."','".quotify($link)."')" ;
-			$sqlite->do($sql) or warn "Can't insert $sql";
+			$sqlite->do("INSERT INTO histories (id,history,link) VALUES ('$i','".quotify(trim(join("\n",@infos)))."','".quotify($link)."')") or warn "Can't insert $sql";
 
 			# link history and games
 			foreach (@roms) {
-				$sql = "INSERT INTO games_histories (game,history_id) VALUES ('".quotify($_)."','$i')" ;
-				$sqlite->do($sql) or warn "Can't insert $sql";
+				$sqlite->do("INSERT INTO games_histories (game,history_id) VALUES ('".quotify($_)."','$i')") or warn "Can't insert $sql";
 			}
 
 			$i++;
@@ -672,8 +668,7 @@ EOT
 			my $nplayers_label	= $2;
 			my @t				= split /\s*\/\s*/ , $nplayers_label ;
 			foreach my $n (@t) {	# split on /
-				my $sql = "INSERT INTO nplayers (game,players) VALUES ('".quotify($game)."','".quotify($n)."')";
-				$sqlite->do($sql) or warn "Can't insert value in nplayers table : $sql";
+				$sqlite->do("INSERT INTO nplayers (game,players) VALUES ('".quotify($game)."','".quotify($n)."')") or warn "Can't insert value in nplayers table : $sql";
 			}
 		}
 	}
@@ -715,9 +710,7 @@ EOT
 		} elsif (/^\$story$/i) {
 			next;
 		} elsif (/^\$end$/i) {			# validate info in database
-				$sql = "INSERT INTO stories (game,score) VALUES ('".	quotify($rom_name)."','".
-																		quotify(trim(join("\n",@score)))."')" ;
-				$sqlite->do($sql) or warn "Can't insert $sql";
+			$sqlite->do("INSERT INTO stories (game,score) VALUES ('".quotify($rom_name)."','".quotify(trim(join("\n",@score)))."')") or warn "Can't insert $sql";
 			
 			# clear infos
 			@score		= ();
@@ -913,13 +906,11 @@ EOT
 		} elsif (/^\[(.+?)\]$/) {		# example : [World Heroes]
 			if ($serie) { # if previous serie register, save in database
 				# save serie name
-				$sql = "INSERT INTO series (id,serie) VALUES ('$i','".quotify(trim($serie))."')" ;
-				$sqlite->do($sql) or warn "Can't insert $sql";
+				$sqlite->do("INSERT INTO series (id,serie) VALUES ('$i','".quotify(trim($serie))."')") or warn "Can't insert $sql";
 
 				# save games in serie
 				foreach (@roms) {
-					$sql = "INSERT INTO games_series (game,serie_id) VALUES ('".quotify($_)."','$i')" ;
-					$sqlite->do($sql) or warn "Can't insert $sql";
+					$sqlite->do("INSERT INTO games_series (game,serie_id) VALUES ('".quotify($_)."','$i')") or warn "Can't insert $sql";
 				}
 				@roms = ();
 				$i++;
@@ -933,8 +924,7 @@ EOT
 	close SERIES;
 
 	foreach (@roms) {
-		$sql = "INSERT INTO games_series (game,serie_id) VALUES ('".quotify($_)."','$i')" ;
-		$sqlite->do($sql) or warn "Can't insert $sql";
+		$sqlite->do("INSERT INTO games_series (game,serie_id) VALUES ('".quotify($_)."','$i')") or warn "Can't insert $sql";
 	}
 
 	print "ok\n";
@@ -986,13 +976,11 @@ EOT
 			$in_cmd = 1;
 		} elsif (/^\$end$/) {		# end of command list
 			# save info in database
-			$sql = "INSERT INTO command (id,command) VALUES ('$i','".quotify(join("\n",@cmd))."')" ;
-			$sqlite->do($sql) or warn "Can't insert $sql";
+			$sqlite->do("INSERT INTO command (id,command) VALUES ('$i','".quotify(join("\n",@cmd))."')") or warn "Can't insert $sql";
 
 			#print Dumper(\@games);
 			foreach my $game (@games) {
-				$sql = "INSERT INTO games_command (game,command_id) VALUES ('".quotify($game)."','$i')" ;
-				$sqlite->do($sql) or warn "Can't insert $sql";
+				$sqlite->do("INSERT INTO games_command (game,command_id) VALUES ('".quotify($game)."','$i')") or warn "Can't insert $sql";
 			}
 
 			$in_cmd = 0;  # reset infos
@@ -1005,8 +993,7 @@ EOT
 	close COMMAND;
 
 	foreach my $game (@games) {
-		$sql = "INSERT INTO games_command (game,command_id) VALUES ('".quotify($game)."','$i')" ;
-		$sqlite->do($sql) or warn "Can't insert $sql";
+		$sqlite->do("INSERT INTO games_command (game,command_id) VALUES ('".quotify($game)."','$i')") or warn "Can't insert $sql";
 	}
 
 	print "ok\n";
@@ -1053,13 +1040,11 @@ EOT
 		} elsif (/^\[(.+?)\]$/) {		# example : [French]
 			if ($language) { # if previous serie register, save in database
 				# save language name
-				$sql = "INSERT INTO languages (id,language) VALUES ('$i','".quotify(trim($language))."')" ;
-				$sqlite->do($sql) or warn "Can't insert $sql";
+				$sqlite->do("INSERT INTO languages (id,language) VALUES ('$i','".quotify(trim($language))."')") or warn "Can't insert $sql";
 
 				# save games in languages
 				foreach (@roms) {
-					$sql = "INSERT INTO games_languages (game,language_id) VALUES ('".quotify($_)."','$i')" ;
-					$sqlite->do($sql) or warn "Can't insert $sql";
+					$sqlite->do("INSERT INTO games_languages (game,language_id) VALUES ('".quotify($_)."','$i')") or warn "Can't insert $sql";
 				}
 				@roms = ();
 				$i++;
@@ -1073,8 +1058,7 @@ EOT
 	close LANGUAGES;
 
 	foreach (@roms) {
-		$sql = "INSERT INTO games_languages (game,language_id) VALUES ('".quotify($_)."','$i')" ;
-		$sqlite->do($sql) or warn "Can't insert $sql";
+		$sqlite->do("INSERT INTO games_languages (game,language_id) VALUES ('".quotify($_)."','$i')") or warn "Can't insert $sql";
 	}
 
 	print "ok\n";
@@ -1106,11 +1090,10 @@ EOT
 		if (/^\[(?:FOLDER_SETTINGS|ROOT_FOLDER)\]$/i) {
 			next;
 		} elsif (/^\[(.+?)\]$/) {		# example : [0 to 10 (Worst)]
-			if ($bestgames) { # if previous serie register, save in database
+			if ($bestgames) { # if previous bestgame register, save in database
 				# save games in bestgame
 				foreach (@roms) {
-					my $sql = "INSERT INTO bestgames (game,evaluation) VALUES ('".quotify($_)."','".quotify($bestgames)."')";
-					$sqlite->do($sql) or warn "Can't insert value in bestgames table : $sql";
+					$sqlite->do("INSERT INTO bestgames (game,evaluation) VALUES ('".quotify($_)."','".quotify($bestgames)."')") or warn "Can't insert value in bestgames table : $sql";
 				}
 				@roms = ();
 			}
@@ -1123,8 +1106,7 @@ EOT
 	close BESTGAMES;
 
 	foreach (@roms) {
-		my $sql = "INSERT INTO bestgames (game,evaluation) VALUES ('".quotify($_)."','".quotify($bestgames)."')";
-		$sqlite->do($sql) or warn "Can't insert value in bestgames table : $sql";
+		$sqlite->do("INSERT INTO bestgames (game,evaluation) VALUES ('".quotify($_)."','".quotify($bestgames)."')") or warn "Can't insert value in bestgames table : $sql";
 	}
 
 	print "ok\n";
@@ -1155,12 +1137,59 @@ EOT
 		if (/^\[(?:FOLDER_SETTINGS|ROOT_FOLDER)\]$/i) {
 			$in_root_folder = 1;
 
-		} elsif (/^.{1,15}$/i && $in_root_folder) {
-			my $sql = "INSERT INTO mature (game) VALUES ('".quotify($_)."')";
-			$sqlite->do($sql) or warn "Can't insert value in mature table : $sql";		
+		} elsif (/^.{1,15}$/i && $in_root_folder) { # rom name. Example : aerfboo2
+			$sqlite->do("INSERT INTO mature (game) VALUES ('".quotify($_)."')") or warn "Can't insert value in mature table : $sql";
 		}
 	}
 	close MATURE;
+
+	print "ok\n";
+}
+
+
+sub parse_genre {
+	if (!-e 'folders/genre.ini') {
+		print "'folders/genre.ini' not found\nYou can download it at http://www.progettoemma.net/?catver\n";
+		return ;
+	}
+	print "Parse 'folders/genre.ini'... ";
+
+	$sqlite->do("DROP TABLE IF EXISTS 'genre'") or die "Can't drop 'genre' table";
+	my $sql = <<EOT ;
+CREATE TABLE IF NOT EXISTS 'genre' (
+	'game'	VARCHAR NOT NULL,
+	'genre'	VARCHAR NOT NULL,
+	PRIMARY KEY (game)
+);
+EOT
+	$sqlite->do($sql) or die "Can't create 'genre' table";
+
+	my $genre = '' ;
+	my @roms = ();
+	open(GENRE,'<folders/genre.ini') or die "Can't find 'folders/genre.ini' ($!)";
+	while(<GENRE>) {
+		chomp;
+		if (/^\[(?:FOLDER_SETTINGS|ROOT_FOLDER)\]$/i) {
+			next;
+		} elsif (/^\[(.+?)\]$/) {		# example : [0 to 10 (Worst)]
+			if ($genre) { # if previous genre register, save in database
+				# save games in genre
+				foreach (@roms) {
+					$sqlite->do("INSERT INTO genre (game,genre) VALUES ('".quotify($_)."','".quotify($genre)."')") or warn "Can't insert value in genre table : $sql";
+				}
+				@roms = ();
+			}
+
+			$genre = $1; # save new bestgames
+		} elsif ($genre && /^(.{1,15})$/) { # rom name. Example : aerfboo2
+			push @roms, $1;
+		}
+	}
+	close GENRE;
+
+	foreach (@roms) {
+		$sqlite->do("INSERT INTO genre (game,genre) VALUES ('".quotify($_)."','".quotify($genre)."')") or warn "Can't insert value in genre table : $sql";
+	}
 
 	print "ok\n";
 }
