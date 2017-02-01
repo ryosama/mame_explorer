@@ -67,7 +67,14 @@ function suggest_manufacturer() {
 			html += '</ul>';
 			$('#suggest-manufacturer .suggest-container').html(html);
 
-			$('#suggest-manufacturer').slideDown('fast');
+			// calculate box height
+			var box_top = parseInt($('#suggest-manufacturer').css('top'));
+			var window_height 	= window.innerHeight;
+			var box_height = window_height - box_top - 10;
+			$('#suggest-manufacturer').css('height', box_height + 'px');
+
+			// display the box
+			$('#suggest-manufacturer').slideDown('fast');		
 		}
 	});
 } // fin function

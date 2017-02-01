@@ -64,6 +64,9 @@ if ($_SESSION['order_by'] == '')
 if ($_SESSION['limit'] <= 0 || !is_numeric($_SESSION['limit']))
 	$_SESSION['limit']=20;
 
+if ($_SESSION['hide_clones'] === '')
+	$_SESSION['hide_clones']=true;
+
 
 // invert date if needed
 if ($_SESSION['from_year'] > $_SESSION['to_year']) {
