@@ -32,7 +32,7 @@ $database = load_database();
 	if (strlen($_SESSION['rom_name'])>0) {
 		$value_escape = sqlite_escape_string($_SESSION['rom_name']);
 
-		$phrase = split(' +',$_SESSION['rom_name']); // split words
+		$phrase = preg_split('/ +/',$_SESSION['rom_name']); // split words
 		$and  = array();
 		foreach ($phrase as $mot)
 			if ($mot) array_push($and,"games.description LIKE '%$mot%'");

@@ -47,6 +47,16 @@ function game_has_info($game) {
 }
 
 
+if (!function_exists('sqlite_escape_string')) {
+	function sqlite_escape_string($string) {
+		$string = str_replace("'", "''", $string);
+		$string = str_replace("?", "\?", $string);
+		$string = str_replace("%", "\%", $string);
+		return $string;
+	}
+}
+
+
 /**
  * Returns a human readable filesize
  *
