@@ -217,3 +217,9 @@ h2 a {
 .stacktable.small-only {
 	display:none;
 }
+
+#search-bar #search-options {
+	display:none;
+	cursor:pointer;
+	float:right;
+}

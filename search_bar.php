@@ -143,7 +143,14 @@ if ($_SESSION['from_year'] > $_SESSION['to_year']) {
 <div id="search-submit">
 	<a id="submit-search" class="btn" href="#">
   		<i class="fa fa-search fa-small"></i> Search
-  	</a>
+	</a>
+</div>
+
+<div id="search-options">
+	<span class="fa-stack fa-lg" title="More options">
+		<i class="fa fa-circle fa-stack-2x"></i>
+		<i class="fa fa-bars fa-stack-1x fa-inverse"></i>
+	</span>
 </div>
 
 <input type="hidden" name="new_search" value="1"/>

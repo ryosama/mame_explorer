@@ -23,6 +23,16 @@ $(document).ready(function() {
 		$('#suggest-manufacturer').slideUp('fast');
 	});
 
+	// more options in search bar
+	$('#search-options').click(function(){
+		var show_options = $('#search-clone').css('display') == 'none' ? 1 : 0;
+
+		if (show_options)
+			$('#search-clone, #search-manufacturer, #search-year, #search-order, #search-limit').css('display','inline-block');
+		else
+			$('#search-clone, #search-manufacturer, #search-year, #search-order, #search-limit').css('display','none');
+	});
+
 	// click on manufacturer
 	$('body').delegate('#suggest-manufacturer .suggest-container li','click',function(e){
 		$('#manufacturer').val( $(this).text() );

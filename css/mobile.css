@@ -106,6 +106,18 @@
 		display:none;
 	}
 
+	#search-bar #search-options {
+		display:inline;
+	}
+	
+	#search-bar #search-clone,
+	#search-bar #search-manufacturer,
+	#search-bar #search-year,
+	#search-bar #search-order,
+	#search-bar #search-limit {
+		display:none;
+	}
+
 }
 
 
