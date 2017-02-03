@@ -17,6 +17,14 @@ h1, #search-bar, .infos, #suggest-manufacturer {
 	border-color: #061639;
 }
 
+h1 {
+	color:#061639;
+}
+
+h2 {
+	color:#061639;
+}
+
 table {
 	background-color:#226765;
 }

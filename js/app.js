@@ -23,11 +23,31 @@ $(document).ready(function() {
 		$('#suggest-manufacturer').slideUp('fast');
 	});
 
+	// more options in search bar
+	$('#search-options').click(function(){
+		var show_options = $('#search-clone').css('display') == 'none' ? 1 : 0;
+
+		if (show_options)
+			$('#search-clone, #search-manufacturer, #search-year, #search-order, #search-limit').css('display','inline-block');
+		else
+			$('#search-clone, #search-manufacturer, #search-year, #search-order, #search-limit').css('display','none');
+	});
+
 	// click on manufacturer
 	$('body').delegate('#suggest-manufacturer .suggest-container li','click',function(e){
 		$('#manufacturer').val( $(this).text() );
 		$('#suggest-manufacturer').slideUp('fast');
 	});
+
+	// adaptive table on mobile
+	$('#display_info table').stacktable();
+	$('#input_info table').stacktable();
+	$('#rom_info table').stacktable();
+	$('#chip_info table').stacktable();
+	$('#adjuster_info table').stacktable();
+	$('#biosset_list table').stacktable();
+	$('#sample_info table').stacktable();
+	$('#disk_info table').stacktable();
 
 }); // end on ready
 
@@ -57,7 +77,14 @@ function suggest_manufacturer() {
 			html += '</ul>';
 			$('#suggest-manufacturer .suggest-container').html(html);
 
-			$('#suggest-manufacturer').slideDown('fast');
+			// calculate box height
+			var box_top = parseInt($('#suggest-manufacturer').css('top'));
+			var window_height 	= window.innerHeight;
+			var box_height = window_height - box_top - 10;
+			$('#suggest-manufacturer').css('height', box_height + 'px');
+
+			// display the box
+			$('#suggest-manufacturer').slideDown('fast');		
 		}
 	});
 } // fin function

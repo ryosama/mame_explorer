@@ -74,10 +74,9 @@ div.pagination a {
 	display:none;
 }
 
-#suggest-manufacturer-container {
+#suggest-manufacturer .suggest-container {
 	overflow-y: auto;
-	height:100%;
-	max-height:428px;
+	height:96%;
 }
 
 #close-suggest-manufacturer {
@@ -91,15 +90,14 @@ div.pagination a {
 /* from games */
 
 h2 {
-	position:relative;
-	top:-18px;
-	left:-4px;
-	padding-left:5px;
+	padding:0px;
+	margin:0px;
 	z-index: -1;
 }
 
 h2 a {
 	font-size:1.2em;
+	color:inherit;
 }
 
 #summary {
@@ -114,7 +112,7 @@ h2 a {
 	border-style:solid;
 	padding:3px;
 	display:table;
-	width:90%;
+	width:99%;
 	margin-bottom:20px;
 }
 
@@ -125,8 +123,7 @@ h2 a {
 
 .labels {
 	font-weight:bold;
-	width:30%;
-	white-space: nowrap;
+	width:120px;
 	text-align:right;
 	display:inline-block;
 }
@@ -215,4 +212,18 @@ h2 a {
 
 #search-limit input {
 	width:1.5em;
+}
+
+.stacktable.small-only {
+	display:none;
+}
+
+#search-bar #search-options {
+	display:none;
+	cursor:pointer;
+	float:right;
+}
+
+#footer {
+	text-align:right;
 }

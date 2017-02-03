@@ -1,4 +1,6 @@
 <?php
+$page_start_timer = microtime();
+
 // rom page presentation
 include_once('inc/config.php');
 include_once('inc/functions.php');
@@ -8,7 +10,7 @@ if (isset($_GET['name']) && $_GET['name']) {
 	$game_name = $_GET['name'];
 } else {
 	// find a random game
-	$res = $database->query("SELECT name FROM games WHERE cloneof='' ORDER BY random() LIMIT 0,1") or die("Unable to query database : ".array_pop($database->errorInfo()));
+	$res = $database->query("SELECT name FROM games WHERE cloneof is NULL and runnable=1 ORDER BY random() LIMIT 0,1") or die("Unable to query database : ".array_pop($database->errorInfo()));
 	$row = $res->fetch(PDO::FETCH_ASSOC);
 	$game_name = $row['name'];
 }	
@@ -26,18 +28,21 @@ $has_info = game_has_info($game_name);
 <head>
 <title>Mame game : <?=$row_game['name']?> : <?=$row_game['description']?></title>
 <meta http-equiv="Content-Type" content="text/html; charset=iso8859-1">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link rel="stylesheet" href="css/font-awesome.min.css">
 <link rel="stylesheet" href="css/bootstrap.css">
 <link rel="stylesheet" type="text/css" href="css/app.css">
 <link rel="stylesheet" type="text/css" href="css/color.css">
+<link rel="stylesheet" type="text/css" href="css/mobile.css">
 <script type="text/javascript" src="js/jquery.js"></script>
 <script type="text/javascript" src="js/app.js"></script>
 <script type="text/javascript" src="js/jquery.lightbox.js"></script>
 <link rel="stylesheet" type="text/css" href="css/jquery.lightbox.css" media="screen" />
+<script type="text/javascript" src="js/stacktable.min.js"></script>
 </head>
 <body>
 
-<? include_once('search_bar.php'); ?>
+<?php include_once('search_bar.php'); ?>
 
 <h1>
 	<?php	if (file_exists(MEDIA_PATH."/icons/$game_name.ico")) { ?>
@@ -53,22 +58,22 @@ $has_info = game_has_info($game_name);
 	<li><a href="#sound_info">Sound</a></li>
 	<li><a href="#driver_info">Driver</a></li>
 	<li><a href="#input_info">Input</a></li>
-	<?php if ($has_info['games_display']) { 		?><li><a href="#display_info">Display</a></li><? } ?>
-	<?php if ($has_info['games_adjuster']) { 		?><li><a href="#adjuster_info">Adjuster</a></li><? } ?>
-	<?php if ($has_info['games_configuration']) { 	?><li><a href="#configuration_info">Configuration</a></li><? } ?>
-	<?php if ($has_info['games_dipswitch']) { 		?><li><a href="#dipswitch_info">Dipswitch</a></li><? } ?>
-	<?php if ($has_info['games_rom']) {				?><li><a href="#rom_list">Roms list</a></li><? } ?>
-	<?php if ($has_info['games_biosset']) { 		?><li><a href="#biosset_list">BIOS set</a></li><? } ?>
-	<?php if ($has_info['games_chip']) { 			?><li><a href="#chip_list">Chips list</a></li><? } ?>
-	<?php if ($has_info['games_sample']) {			?><li><a href="#sample_list">Sample list</a></li><? } ?>
-	<?php if ($has_info['games_disk']) { 			?><li><a href="#disk_list">Disks list</a></li><? } ?>
-	<?php if ($has_info['games_series']) { 			?><li><a href="#serie_info">Serie</a></li><? } ?>
-	<?php if ($has_info['categories']) { 			?><li><a href="#categories_info">Categories</a></li><? } ?>
-	<?php if ($has_info['mameinfo']) { 				?><li><a href="#mameinfo_info">MAMEinfo</a></li><? } ?>
-	<?php if ($has_info['games_histories']) { 		?><li><a href="#stories_info">History</a></li><? } ?>
-	<?php if ($has_info['games_command']) { 		?><li><a href="#command_list">Commands list</a></li><? } ?>
-	<?php if ($has_info['cheats']) { 				?><li><a href="#cheats_list">Cheats</a></li><? } ?>
-	<?php if ($has_info['stories']) { 				?><li><a href="#highscore_info">High scores</a></li><? } ?>
+	<?php if ($has_info['games_display']) { 		?><li><a href="#display_info">Display</a></li><?php } ?>
+	<?php if ($has_info['games_adjuster']) { 		?><li><a href="#adjuster_info">Adjuster</a></li><?php } ?>
+	<?php if ($has_info['games_configuration']) { 	?><li><a href="#configuration_info">Configuration</a></li><?php } ?>
+	<?php if ($has_info['games_dipswitch']) { 		?><li><a href="#dipswitch_info">Dipswitch</a></li><?php } ?>
+	<?php if ($has_info['games_rom']) {				?><li><a href="#rom_list">Roms list</a></li><?php } ?>
+	<?php if ($has_info['games_biosset']) { 		?><li><a href="#biosset_list">BIOS set</a></li><?php } ?>
+	<?php if ($has_info['games_chip']) { 			?><li><a href="#chip_list">Chips list</a></li><?php } ?>
+	<?php if ($has_info['games_sample']) {			?><li><a href="#sample_list">Sample list</a></li><?php } ?>
+	<?php if ($has_info['games_disk']) { 			?><li><a href="#disk_list">Disks list</a></li><?php } ?>
+	<?php if ($has_info['games_series']) { 			?><li><a href="#serie_info">Serie</a></li><?php } ?>
+	<?php if ($has_info['categories']) { 			?><li><a href="#categories_info">Categories</a></li><?php } ?>
+	<?php if ($has_info['mameinfo']) { 				?><li><a href="#mameinfo_info">MAMEinfo</a></li><?php } ?>
+	<?php if ($has_info['games_histories']) { 		?><li><a href="#stories_info">History</a></li><?php } ?>
+	<?php if ($has_info['games_command']) { 		?><li><a href="#command_list">Commands list</a></li><?php } ?>
+	<?php if ($has_info['cheats']) { 				?><li><a href="#cheats_list">Cheats</a></li><?php } ?>
+	<?php if ($has_info['stories']) { 				?><li><a href="#highscore_info">High scores</a></li><?php } ?>
 </ol>
 
 <script language="javascript">
@@ -97,7 +102,13 @@ $(document).ready(function(){
 			'snap'		=> 'Snapshot',
 			'titles'	=> 'Title',
 			'bosses'	=> 'Boss',
-			'ending'	=> 'Ending',
+			'ends'		=> 'Ending',
+			'gameover'	=> 'Game Over',
+			'howto'		=> 'How To',
+			'logo'		=> 'Logo',
+			'scores'	=> 'Score',
+			'select'	=> 'Select',
+			'versus'	=> 'Versus',
 			'marquees'	=> 'Marquee',
 			'flyers'	=> 'Flyer',
 			'cabinets'	=> 'Cabinet',
@@ -148,27 +159,27 @@ foreach ($fields as $field_name => $field_type) {
 		</div>
 <?php
 	}
-}
+} ?>
 
-$res = $database->query("SELECT * FROM nplayers WHERE game='$game_name_escape'") or die("Unable to query database : ".array_pop($database->errorInfo()));
-while($row = $res->fetch(PDO::FETCH_ASSOC)) { ?>
-		<div id="game_nplayers" class="info">
-			<span class="labels">Number of players</span>
-			<span class="values"><?=$row['players']?></span>
-		</div>
+<?php 	$res = $database->query("SELECT * FROM nplayers WHERE game='$game_name_escape'") or die("Unable to query database : ".array_pop($database->errorInfo()));
+		while($row = $res->fetch(PDO::FETCH_ASSOC)) { ?>
+			<div id="game_nplayers" class="info">
+				<span class="labels">Number of players</span>
+				<span class="values"><?=$row['players']?></span>
+			</div>
 <?php
-}
+		}
 
-$res = $database->query("SELECT * FROM categories WHERE game='$game_name_escape' AND version_added=1") or die("Unable to query database : ".array_pop($database->errorInfo()));
-$row = $res->fetch(PDO::FETCH_ASSOC); ?>
+		$res = $database->query("SELECT * FROM categories WHERE game='$game_name_escape' AND version_added=1") or die("Unable to query database : ".array_pop($database->errorInfo()));
+		$row = $res->fetch(PDO::FETCH_ASSOC); ?>
 		<div id="game_add_in_mame" class="info">
 			<span class="labels">Added to MAME in version</span>
 			<span class="values"><?=$row['categorie']?></span>
 		</div>
 
 <?php
-$res = $database->query("SELECT romset_size,romset_file,romset_zip FROM mameinfo WHERE game='$game_name_escape'") or die("Unable to query database : ".array_pop($database->errorInfo()));
-$row = $res->fetch(PDO::FETCH_ASSOC); ?>
+		$res = $database->query("SELECT romset_size,romset_file,romset_zip FROM mameinfo WHERE game='$game_name_escape'") or die("Unable to query database : ".array_pop($database->errorInfo()));
+		$row = $res->fetch(PDO::FETCH_ASSOC); ?>
 		<div id="game_romset_size" class="info">
 			<span class="labels">Romset size</span>
 			<span class="values"><?=HumanReadableFilesize($row['romset_size'] * 1024)?></span>
@@ -176,10 +187,47 @@ $row = $res->fetch(PDO::FETCH_ASSOC); ?>
 		<div id="game_romset_size" class="info">
 			<span class="labels">Romset file</span>
 			<span class="values"><?=$row['romset_file']?> files</span>
-		</div><div id="game_romset_size" class="info">
+		</div>
+		<div id="game_romset_size" class="info">
 			<span class="labels">Romset zip</span>
 			<span class="values"><?=HumanReadableFilesize($row['romset_zip'])?></span>
 		</div>
+<?php
+		$res = $database->query("SELECT L.language FROM languages L LEFT JOIN games_languages GL ON L.id=GL.language_id WHERE GL.game='$game_name_escape'") or die("Unable to query database : ".array_pop($database->errorInfo()));
+		$row = $res->fetch(PDO::FETCH_ASSOC);
+		if (strlen($row['language'])>0) { ?>
+			<div id="game_language" class="info">
+				<span class="labels">Language</span>
+				<span class="values"><?=$row['language']?></span>
+			</div>
+<?php   } ?>
+<?php
+		$res = $database->query("SELECT evaluation FROM bestgames WHERE game='$game_name_escape'") or die("Unable to query database : ".array_pop($database->errorInfo()));
+		$row = $res->fetch(PDO::FETCH_ASSOC);
+		if (strlen($row['evaluation'])>0) { ?>
+			<div id="game_evaluation" class="info">
+				<span class="labels">Evaluation</span>
+				<span class="values"><?=$row['evaluation']?></span>
+			</div>
+<?php   } ?>
+<?php
+		$res = $database->query("SELECT count(*) as mature FROM mature WHERE game='$game_name_escape'") or die("Unable to query database : ".array_pop($database->errorInfo()));
+		$row = $res->fetch(PDO::FETCH_ASSOC);
+		if ($row['mature'] > 0) { ?>
+			<div id="game_mature" class="info">
+				<span class="labels">Mature</span>
+				<span class="values">This game is for adults only</span>
+			</div>
+<?php   } ?>
+<?php
+		$res = $database->query("SELECT genre FROM genre WHERE game='$game_name_escape'") or die("Unable to query database : ".array_pop($database->errorInfo()));
+		$row = $res->fetch(PDO::FETCH_ASSOC);
+		if (strlen($row['genre']) > 0) { ?>
+			<div id="game_genre" class="info">
+				<span class="labels">Genre</span>
+				<span class="values"><?=$row['genre']?></span>
+			</div>
+<?php   } ?>
 </div>
 
 
@@ -235,7 +283,7 @@ foreach ($fields as $field_name => $field_type) {
 
 <!-- DRIVERS INFO -->
 <?php
-$fields = array('driver_status'=>'VARCHAR','driver_emulation'=>'VARCHAR','driver_color'=>'VARCHAR','driver_sound'=>'VARCHAR','driver_graphic'=>'VARCHAR','driver_cocktail'=>'VARCHAR','driver_protection'=>'VARCHAR','driver_savestate'=>'BOOL','driver_palettesize'=>'INTEGER');
+$fields = array('driver_status'=>'VARCHAR','driver_emulation'=>'VARCHAR','driver_color'=>'VARCHAR','driver_sound'=>'VARCHAR','driver_graphic'=>'VARCHAR','driver_cocktail'=>'VARCHAR','driver_protection'=>'VARCHAR','driver_savestate'=>'BOOL');
 $res = $database->query("SELECT ".join(',',array_keys($fields))." FROM games WHERE name='$game_name_escape'") or die("Unable to query database : ".array_pop($database->errorInfo()));
 $row = $res->fetch(PDO::FETCH_ASSOC)
 ?>
@@ -380,10 +428,10 @@ if ($has_info['games_dipswitch']) {
 <?php			$res2 = $database->query("SELECT * FROM games_dipswitch_dipvalue WHERE dipswitch_id='$row[id]'") or die("Unable to query database : ".array_pop($database->errorInfo()));
 				while($row2 = $res2->fetch(PDO::FETCH_ASSOC)) { ?>
 					<li><?=$row2['name']?></li>
-<?				} ?>
+<?php			} ?>
 			</ul>
 		</li>
-<? } ?>
+<?php } ?>
 	</ul>
 </div>
 <?php } // game has info ?>
@@ -426,13 +474,13 @@ if ($has_info['games_rom']) {
 <table>
 	<tr>
 <?php foreach ($fields as $field_name => $field_type) { ?>
-		<th><?=$field_name?></th>
+		<th class="<?=$field_name?>"><?=$field_name?></th>
 <?php } ?>
 		</tr>
 <?php while($row = $res->fetch(PDO::FETCH_ASSOC)) { ?>
 	<tr>
 		<?php foreach ($fields as $field_name => $field_type) { ?>
-			<td><?= $fields[$field_name] == 'BOOL' ? bool2yesno($row[$field_name]) : $row[$field_name] ?></td>
+			<td class="<?=$field_name?>"><?= $fields[$field_name] == 'BOOL' ? bool2yesno($row[$field_name]) : $row[$field_name] ?></td>
 		<?php } ?>
 	</tr>
 <?php } ?>
@@ -652,10 +700,10 @@ if ($has_info['cheats']) {
 <?php			$res2 = $database->query("SELECT * FROM cheats_options WHERE cheat_id='$row[id]'") or die("Unable to query database : ".array_pop($database->errorInfo()));
 				while($row2 = $res2->fetch(PDO::FETCH_ASSOC)) { ?>
 					<li><?=$row2['option']?></li>
-<?				} ?>
+<?php			} ?>
 			</ul>
 		</li>
-<?		}
+<?php	}
 	} ?>
 	</ul>
 </div>
@@ -674,6 +722,8 @@ if ($has_info['stories']) {
 <?php } ?>
 </div>
 <?php } // game has info ?>
+
+<?php include_once('footer.php'); ?>
 
 </body>
 </html>
