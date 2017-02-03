@@ -1,0 +1,21 @@
+Options All -Indexes
+
+<Files *.pl>
+	Deny from all
+</Files>
+
+<Files *.sqlite>
+	Deny from all
+</Files>
+
+<Files *.xml>
+	Deny from all
+</Files>
+
+<Files *.zip>
+	Deny from all
+</Files>
+
+<Files *.7z>
+	Deny from all
+</Files>
