@@ -1,4 +1,6 @@
 <?php
+$page_start_timer = microtime();
+
 // rom page presentation
 include_once('inc/config.php');
 include_once('inc/functions.php');
@@ -40,7 +42,7 @@ $has_info = game_has_info($game_name);
 </head>
 <body>
 
-<? include_once('search_bar.php'); ?>
+<?php include_once('search_bar.php'); ?>
 
 <h1>
 	<?php	if (file_exists(MEDIA_PATH."/icons/$game_name.ico")) { ?>
@@ -56,22 +58,22 @@ $has_info = game_has_info($game_name);
 	<li><a href="#sound_info">Sound</a></li>
 	<li><a href="#driver_info">Driver</a></li>
 	<li><a href="#input_info">Input</a></li>
-	<?php if ($has_info['games_display']) { 		?><li><a href="#display_info">Display</a></li><? } ?>
-	<?php if ($has_info['games_adjuster']) { 		?><li><a href="#adjuster_info">Adjuster</a></li><? } ?>
-	<?php if ($has_info['games_configuration']) { 	?><li><a href="#configuration_info">Configuration</a></li><? } ?>
-	<?php if ($has_info['games_dipswitch']) { 		?><li><a href="#dipswitch_info">Dipswitch</a></li><? } ?>
-	<?php if ($has_info['games_rom']) {				?><li><a href="#rom_list">Roms list</a></li><? } ?>
-	<?php if ($has_info['games_biosset']) { 		?><li><a href="#biosset_list">BIOS set</a></li><? } ?>
-	<?php if ($has_info['games_chip']) { 			?><li><a href="#chip_list">Chips list</a></li><? } ?>
-	<?php if ($has_info['games_sample']) {			?><li><a href="#sample_list">Sample list</a></li><? } ?>
-	<?php if ($has_info['games_disk']) { 			?><li><a href="#disk_list">Disks list</a></li><? } ?>
-	<?php if ($has_info['games_series']) { 			?><li><a href="#serie_info">Serie</a></li><? } ?>
-	<?php if ($has_info['categories']) { 			?><li><a href="#categories_info">Categories</a></li><? } ?>
-	<?php if ($has_info['mameinfo']) { 				?><li><a href="#mameinfo_info">MAMEinfo</a></li><? } ?>
-	<?php if ($has_info['games_histories']) { 		?><li><a href="#stories_info">History</a></li><? } ?>
-	<?php if ($has_info['games_command']) { 		?><li><a href="#command_list">Commands list</a></li><? } ?>
-	<?php if ($has_info['cheats']) { 				?><li><a href="#cheats_list">Cheats</a></li><? } ?>
-	<?php if ($has_info['stories']) { 				?><li><a href="#highscore_info">High scores</a></li><? } ?>
+	<?php if ($has_info['games_display']) { 		?><li><a href="#display_info">Display</a></li><?php } ?>
+	<?php if ($has_info['games_adjuster']) { 		?><li><a href="#adjuster_info">Adjuster</a></li><?php } ?>
+	<?php if ($has_info['games_configuration']) { 	?><li><a href="#configuration_info">Configuration</a></li><?php } ?>
+	<?php if ($has_info['games_dipswitch']) { 		?><li><a href="#dipswitch_info">Dipswitch</a></li><?php } ?>
+	<?php if ($has_info['games_rom']) {				?><li><a href="#rom_list">Roms list</a></li><?php } ?>
+	<?php if ($has_info['games_biosset']) { 		?><li><a href="#biosset_list">BIOS set</a></li><?php } ?>
+	<?php if ($has_info['games_chip']) { 			?><li><a href="#chip_list">Chips list</a></li><?php } ?>
+	<?php if ($has_info['games_sample']) {			?><li><a href="#sample_list">Sample list</a></li><?php } ?>
+	<?php if ($has_info['games_disk']) { 			?><li><a href="#disk_list">Disks list</a></li><?php } ?>
+	<?php if ($has_info['games_series']) { 			?><li><a href="#serie_info">Serie</a></li><?php } ?>
+	<?php if ($has_info['categories']) { 			?><li><a href="#categories_info">Categories</a></li><?php } ?>
+	<?php if ($has_info['mameinfo']) { 				?><li><a href="#mameinfo_info">MAMEinfo</a></li><?php } ?>
+	<?php if ($has_info['games_histories']) { 		?><li><a href="#stories_info">History</a></li><?php } ?>
+	<?php if ($has_info['games_command']) { 		?><li><a href="#command_list">Commands list</a></li><?php } ?>
+	<?php if ($has_info['cheats']) { 				?><li><a href="#cheats_list">Cheats</a></li><?php } ?>
+	<?php if ($has_info['stories']) { 				?><li><a href="#highscore_info">High scores</a></li><?php } ?>
 </ol>
 
 <script language="javascript">
@@ -426,10 +428,10 @@ if ($has_info['games_dipswitch']) {
 <?php			$res2 = $database->query("SELECT * FROM games_dipswitch_dipvalue WHERE dipswitch_id='$row[id]'") or die("Unable to query database : ".array_pop($database->errorInfo()));
 				while($row2 = $res2->fetch(PDO::FETCH_ASSOC)) { ?>
 					<li><?=$row2['name']?></li>
-<?				} ?>
+<?php			} ?>
 			</ul>
 		</li>
-<? } ?>
+<?php } ?>
 	</ul>
 </div>
 <?php } // game has info ?>
@@ -698,10 +700,10 @@ if ($has_info['cheats']) {
 <?php			$res2 = $database->query("SELECT * FROM cheats_options WHERE cheat_id='$row[id]'") or die("Unable to query database : ".array_pop($database->errorInfo()));
 				while($row2 = $res2->fetch(PDO::FETCH_ASSOC)) { ?>
 					<li><?=$row2['option']?></li>
-<?				} ?>
+<?php			} ?>
 			</ul>
 		</li>
-<?		}
+<?php	}
 	} ?>
 	</ul>
 </div>
@@ -720,6 +722,8 @@ if ($has_info['stories']) {
 <?php } ?>
 </div>
 <?php } // game has info ?>
+
+<?php include_once('footer.php'); ?>
 
 </body>
 </html>

@@ -10,6 +10,13 @@ use File::Copy;
 use URI::URL;
 $|=1;
 
+# create directory structures
+foreach (qw/bosses cabinets cpanel ends flyers gameover howto icons logo marquees pcb scores select snap titles versus/) {
+	if (!-d) { # if not a directory
+		mkpath($_) or warn "Coudn't create directory '$_' ($!)";
+	}
+}
+
 my $urls = [
 	{	'url' 	=> 'http://www.progettosnaps.net/catver/',
 		'what' 	=> [qr/packs\/pS_CatVer\.zip$/i],		# catver.ini

@@ -1,4 +1,6 @@
 <?php
+$page_start_timer = microtime();
+
 // page de resultat de recherchye de rom
 include_once('inc/config.php');
 include_once('inc/functions.php');
@@ -18,7 +20,7 @@ $database = load_database();
 </head>
 <body>
 
-<? include_once('search_bar.php'); ?>
+<?php include_once('search_bar.php'); ?>
 
 <!-- RESULT LIST -->
 <?php
@@ -48,7 +50,7 @@ $database = load_database();
 
 	// manufacturer
 	if (strlen($_SESSION['manufacturer'])>0)
-		array_push($where,"games.manufacturer = '".sqlite_escape_string($_SESSION['manufacturer'])."'");
+		array_push($where,"games.manufacturer LIKE '".sqlite_escape_string($_SESSION['manufacturer'])."'");
 
 	// year from
 	if (is_numeric($_SESSION['from_year']))
@@ -135,28 +137,27 @@ EOT;
 </table>
 
 <div class="pagination">
-<? if ($row_count > 0) {
+<?php if ($row_count > 0) {
 	if ($pageno > 1) { ?>
 	<a href="<?=$_SERVER['PHP_SELF']?>?pageno=1">&lt;&lt;FIRST</a>
 	<a href="<?=$_SERVER['PHP_SELF']?>?pageno=<?=$pageno - 1?>">&lt;PREV</a>
-<? } ?>
+<?php } ?>
 
 <span class="nombre"><?=$row_count?></span> game<?=$row_count>1?'s':''?>
 
 <!-- menu déroulant pour accedez à la page de son choix -->
 <select name="pageno" onchange="change_page(this);">
-<?	for($i=1 ; $i<=$lastpage ; $i++) { ?>
-		<option value="<?=$i?>"<?= $i==$pageno?' selected':'' ?>>Page <?=$i?></option>
-<?	} ?>
+<?php 	for($i=1 ; $i<=$lastpage ; $i++) { ?>
+			<option value="<?=$i?>"<?= $i==$pageno?' selected':'' ?>>Page <?=$i?></option>
+<?php 	} ?>
 </select>
 
 of <span class="nombre"><?=$lastpage?></span>
-<? if ($pageno < $lastpage) { ?>
+<?php if ($pageno < $lastpage) { ?>
 	<a href="<?=$_SERVER['PHP_SELF']?>?pageno=<?=$pageno + 1?>">NEXT&gt;</a>
 	<a href="<?=$_SERVER['PHP_SELF']?>?pageno=<?=$lastpage?>">LAST&gt;&gt;</a>
-<? } ?>
-
-<?	} ?>
+<?php } 
+} ?>
 </div>
 
 <?php
@@ -169,6 +170,8 @@ echo "<pre>_POST\n" ; print_r($_POST); echo "</pre>" ;
 echo "<pre>_GET\n" ; print_r($_GET); echo "</pre>" ;
 */
 ?>
+
+<?php include_once('footer.php'); ?>
 
 </body>
 </html>

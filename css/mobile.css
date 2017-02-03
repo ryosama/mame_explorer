@@ -1,3 +1,9 @@
+@media screen and (max-width: 1090px) {
+	#results {
+		margin-top:25px;
+	}
+}
+
 @media screen and (max-width: 799px) {
 	body {
 		padding-top:0px;
@@ -35,6 +41,7 @@
 	
 	#results {
 		font-size:0.8em;
+		margin-top:0px;
 	}
 	
 	#results .cloneof {
@@ -83,7 +90,6 @@
 		padding:2px 5px 2px 5px;
 	}
 	
-	
 	#snapshot {
 		margin:auto;
 		padding:0px;
@@ -118,6 +124,9 @@
 		display:none;
 	}
 
+	#footer {
+		display:none;
+	}
 }
 
 
