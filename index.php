@@ -151,7 +151,7 @@ foreach ($fields as $field_name => $field_type) {
 			<span class="labels"><?=ucfirst($field_name)?></span>
 			<span class="values">
 <?php			if (in_array($field_name,$search_info)) { // if search criteria ?>
-					<a href="search.php?<?=$field_name?>=<?=$row_game[$field_name]?>"><?=$fields[$field_name]=='BOOL' ? bool2yesno($row_game[$field_name]) : $row_game[$field_name] ?></a>
+					<a href="results.php?<?=$field_name?>=<?=$row_game[$field_name]?>"><?=$fields[$field_name]=='BOOL' ? bool2yesno($row_game[$field_name]) : $row_game[$field_name] ?></a>
 <?php			} else { ?>
 					<?=$fields[$field_name]=='BOOL' ? bool2yesno($row_game[$field_name]) : $row_game[$field_name] ?>
 <?php			} ?>
@@ -161,24 +161,22 @@ foreach ($fields as $field_name => $field_type) {
 	}
 } ?>
 
-<?php 	$res = $database->query("SELECT * FROM nplayers WHERE game='$game_name_escape'") or die("Unable to query database : ".array_pop($database->errorInfo()));
+<?php 	$res = $database->query("SELECT * FROM nplayers WHERE game='$game_name_escape'");
 		while($row = $res->fetch(PDO::FETCH_ASSOC)) { ?>
 			<div id="game_nplayers" class="info">
 				<span class="labels">Number of players</span>
-				<span class="values"><?=$row['players']?></span>
+				<span class="values"><a href="results.php?nplayers=<?=urlencode($row['players'])?>"><?=$row['players']?></a></span>
 			</div>
-<?php
-		}
+<?php	} ?>
 
-		$res = $database->query("SELECT * FROM categories WHERE game='$game_name_escape' AND version_added=1") or die("Unable to query database : ".array_pop($database->errorInfo()));
+<?php	$res = $database->query("SELECT * FROM categories WHERE game='$game_name_escape' AND version_added=1");
 		$row = $res->fetch(PDO::FETCH_ASSOC); ?>
 		<div id="game_add_in_mame" class="info">
-			<span class="labels">Added to MAME in version</span>
-			<span class="values"><?=$row['categorie']?></span>
+			<span class="labels">Added to MAME</span>
+			<span class="values"><a href="results.php?categorie=<?=urlencode($row['categorie'])?>"><?=$row['categorie']?></a></span>
 		</div>
 
-<?php
-		$res = $database->query("SELECT romset_size,romset_file,romset_zip FROM mameinfo WHERE game='$game_name_escape'") or die("Unable to query database : ".array_pop($database->errorInfo()));
+<?php	$res = $database->query("SELECT romset_size,romset_file,romset_zip FROM mameinfo WHERE game='$game_name_escape'");
 		$row = $res->fetch(PDO::FETCH_ASSOC); ?>
 		<div id="game_romset_size" class="info">
 			<span class="labels">Romset size</span>
@@ -192,40 +190,42 @@ foreach ($fields as $field_name => $field_type) {
 			<span class="labels">Romset zip</span>
 			<span class="values"><?=HumanReadableFilesize($row['romset_zip'])?></span>
 		</div>
-<?php
-		$res = $database->query("SELECT L.language FROM languages L LEFT JOIN games_languages GL ON L.id=GL.language_id WHERE GL.game='$game_name_escape'") or die("Unable to query database : ".array_pop($database->errorInfo()));
-		$row = $res->fetch(PDO::FETCH_ASSOC);
-		if (strlen($row['language'])>0) { ?>
+
+<?php	$res = $database->query("SELECT L.language FROM languages L LEFT JOIN games_languages GL ON L.id=GL.language_id WHERE GL.game='$game_name_escape'"); ?>
 			<div id="game_language" class="info">
 				<span class="labels">Language</span>
-				<span class="values"><?=$row['language']?></span>
+				<span class="values">
+<?php 				$html_languages = array();
+					while($row = $res->fetch(PDO::FETCH_ASSOC))
+						$html_languages[] = '<a href="results.php?language='.urlencode($row['language']).'">'.$row['language'].'</a>';
+					echo join(' / ',$html_languages); ?>
+				</span>
 			</div>
-<?php   } ?>
-<?php
-		$res = $database->query("SELECT evaluation FROM bestgames WHERE game='$game_name_escape'") or die("Unable to query database : ".array_pop($database->errorInfo()));
+
+<?php	$res = $database->query("SELECT evaluation FROM bestgames WHERE game='$game_name_escape'");
 		$row = $res->fetch(PDO::FETCH_ASSOC);
 		if (strlen($row['evaluation'])>0) { ?>
 			<div id="game_evaluation" class="info">
 				<span class="labels">Evaluation</span>
-				<span class="values"><?=$row['evaluation']?></span>
+				<span class="values"><a href="results.php?evaluation=<?=urlencode($row['evaluation'])?>"><?=$row['evaluation']?></a></span>
 			</div>
 <?php   } ?>
-<?php
-		$res = $database->query("SELECT count(*) as mature FROM mature WHERE game='$game_name_escape'") or die("Unable to query database : ".array_pop($database->errorInfo()));
+
+<?php	$res = $database->query("SELECT count(*) as mature FROM mature WHERE game='$game_name_escape'");
 		$row = $res->fetch(PDO::FETCH_ASSOC);
 		if ($row['mature'] > 0) { ?>
 			<div id="game_mature" class="info">
 				<span class="labels">Mature</span>
-				<span class="values">This game is for adults only</span>
+				<span class="values"><a href="results.php?mature=on">This game is for adults only</a></span>
 			</div>
 <?php   } ?>
-<?php
-		$res = $database->query("SELECT genre FROM genre WHERE game='$game_name_escape'") or die("Unable to query database : ".array_pop($database->errorInfo()));
+
+<?php	$res = $database->query("SELECT genre FROM genre WHERE game='$game_name_escape'");
 		$row = $res->fetch(PDO::FETCH_ASSOC);
 		if (strlen($row['genre']) > 0) { ?>
 			<div id="game_genre" class="info">
 				<span class="labels">Genre</span>
-				<span class="values"><?=$row['genre']?></span>
+				<span class="values"><a href="results.php?genre=<?=urlencode($row['genre'])?>"><?=$row['genre']?></a></span>
 			</div>
 <?php   } ?>
 </div>
@@ -238,21 +238,21 @@ foreach ($fields as $field_name => $field_type) {
 		<span class="labels">Parent</span>
 <?php		$res = $database->query("SELECT description FROM games WHERE name='$cloneof'") or die("Unable to query database : ".array_pop($database->errorInfo())); 
 			$row = $res->fetch(PDO::FETCH_ASSOC);
-			echo $cloneof ? "<a href=\"$_SERVER[PHP_SELF]?name=$cloneof\">$cloneof</a> : $row[description]" : 'This game is a parent';
+			echo $cloneof ? "<a href=\"?name=$cloneof\">$cloneof</a> : $row[description]" : 'This game is a parent';
 ?>
 	</div>
 <?php	if (!$cloneof) { // if parent ?>
 			<ul><span class="labels">Clones</span>
 <?php 			$res = $database->query("SELECT name,description,year FROM games WHERE cloneof='$game_name_escape' ORDER BY year ASC,description ASC") or die("Unable to query database : ".array_pop($database->errorInfo())); 
 				while ($row = $res->fetch(PDO::FETCH_ASSOC)) { ?>
-					<li><a href="<?=$_SERVER['PHP_SELF']?>?name=<?=$row['name']?>"><?=$row['name']?></a> : <?=$row['description']?> (<?=$row['year']?>)</li>
+					<li><a href="?name=<?=$row['name']?>"><?=$row['name']?></a> : <?=$row['description']?> (<?=$row['year']?>)</li>
 <?php			} ?>
 			</ul>
 <?php	} else { // if clone ?>
 			<ul><span class="labels">Other clones</span>
 <?php 			$res = $database->query("SELECT name,description,year FROM games WHERE cloneof='$cloneof' ORDER BY year ASC,description ASC") or die("Unable to query database : ".array_pop($database->errorInfo())); 
 				while ($row = $res->fetch(PDO::FETCH_ASSOC)) { ?>
-					<li><a href="<?=$_SERVER['PHP_SELF']?>?name=<?=$row['name']?>"><?=$row['name']?></a> : <?=$row['description']?> (<?=$row['year']?>)</li>
+					<li><a href="?name=<?=$row['name']?>"><?=$row['name']?></a> : <?=$row['description']?> (<?=$row['year']?>)</li>
 <?php			} ?>
 			</ul>
 <?php	} ?>
@@ -320,8 +320,7 @@ foreach ($fields as $field_name => $field_type) { ?>
 
 if ($has_info['games_control']) {
 $fields = get_fields_info('games_control');
-$res = $database->query("SELECT * FROM games_control WHERE game='$game_name_escape'") or die("Unable to query database : ".array_pop($database->errorInfo()));
-?>
+$res = $database->query("SELECT * FROM games_control WHERE game='$game_name_escape'"); ?>
 <table>
 	<tr>
 <?php foreach ($fields as $field_name => $field_type) { ?>
@@ -345,8 +344,7 @@ $res = $database->query("SELECT * FROM games_control WHERE game='$game_name_esca
 <?php
 if ($has_info['games_display']) {
 $fields = get_fields_info('games_display');
-$res = $database->query("SELECT * FROM games_display WHERE game='$game_name_escape'") or die("Unable to query database : ".array_pop($database->errorInfo()));
-?>
+$res = $database->query("SELECT * FROM games_display WHERE game='$game_name_escape'"); ?>
 <div id="display_info" class="infos">
 <h2><a name="display_info">Display infos</a></h2>
 <table>
@@ -371,8 +369,7 @@ $res = $database->query("SELECT * FROM games_display WHERE game='$game_name_esca
 <?php
 if ($has_info['games_configuration']) {
 	$fields = get_fields_info('games_configuration');
-	$res = $database->query("SELECT * FROM games_configuration WHERE game='$game_name_escape'") or die("Unable to query database : ".array_pop($database->errorInfo()));
-?>
+	$res = $database->query("SELECT * FROM games_configuration WHERE game='$game_name_escape'"); ?>
 <div id="configuration_info" class="infos">
 <h2><a name="configuration_info">Configuration</a></h2>
 <table>
@@ -390,7 +387,7 @@ if ($has_info['games_configuration']) {
 			<?= $fields[$field_name] == 'BOOL' ? bool2yesno($row[$field_name]) : $row[$field_name] ?>
 <?php		if ($i==0) { // 1er champ du tableau
 				$fields2 = get_fields_info('games_configuration_confsetting');
-				$res2 = $database->query("SELECT * FROM games_configuration_confsetting WHERE configuration_id='$row[id]'") or die("Unable to query database : ".array_pop($database->errorInfo()));		
+				$res2 = $database->query("SELECT * FROM games_configuration_confsetting WHERE configuration_id='$row[id]'");
 				while($row2 = $res2->fetch(PDO::FETCH_ASSOC)) { ?>
 					<div class="sousinfo">
 <?php					foreach ($fields2 as $field_name2 => $field_type2) { ?>
@@ -416,8 +413,7 @@ if ($has_info['games_configuration']) {
 <!-- DIPSWITCH INFO -->
 <?php
 if ($has_info['games_dipswitch']) {
-	$res = $database->query("SELECT * FROM games_dipswitch WHERE game='$game_name_escape'") or die("Unable to query database : ".array_pop($database->errorInfo()));
-?>
+	$res = $database->query("SELECT * FROM games_dipswitch WHERE game='$game_name_escape'"); ?>
 <div id="dipswitch_info" class="infos">
 <h2><a name="dipswitch_info">Dipswitch</a></h2>
 	<ul>
@@ -425,7 +421,7 @@ if ($has_info['games_dipswitch']) {
 		<li>
 			<?=$row['name']?>
 			<ul>
-<?php			$res2 = $database->query("SELECT * FROM games_dipswitch_dipvalue WHERE dipswitch_id='$row[id]'") or die("Unable to query database : ".array_pop($database->errorInfo()));
+<?php			$res2 = $database->query("SELECT * FROM games_dipswitch_dipvalue WHERE dipswitch_id='$row[id]'");
 				while($row2 = $res2->fetch(PDO::FETCH_ASSOC)) { ?>
 					<li><?=$row2['name']?></li>
 <?php			} ?>
@@ -441,8 +437,7 @@ if ($has_info['games_dipswitch']) {
 <?php
 if ($has_info['games_adjuster']) {
 	$fields = get_fields_info('games_adjuster');
-	$res = $database->query("SELECT * FROM games_adjuster WHERE game='$game_name_escape'") or die("Unable to query database : ".array_pop($database->errorInfo()));
-?>
+	$res = $database->query("SELECT * FROM games_adjuster WHERE game='$game_name_escape'"); ?>
 <div id="adjuster_info" class="infos">
 <h2><a name="adjuster_info">Adjuster</a></h2>
 <table>
@@ -467,8 +462,7 @@ if ($has_info['games_adjuster']) {
 <?php
 if ($has_info['games_rom']) {
 	$fields = get_fields_info('games_rom');
-	$res = $database->query("SELECT * FROM games_rom WHERE game='$game_name_escape'") or die("Unable to query database : ".array_pop($database->errorInfo()));
-?>
+	$res = $database->query("SELECT * FROM games_rom WHERE game='$game_name_escape'"); ?>
 <div id="rom_info" class="infos">
 <h2><a name="rom_list">Roms list</a></h2>
 <table>
@@ -493,8 +487,7 @@ if ($has_info['games_rom']) {
 <?php
 if ($has_info['games_biosset']) {
 	$fields = get_fields_info('games_biosset');
-	$res = $database->query("SELECT * FROM games_biosset WHERE game='$game_name_escape'") or die("Unable to query database : ".array_pop($database->errorInfo()));
-?>
+	$res = $database->query("SELECT * FROM games_biosset WHERE game='$game_name_escape'"); ?>
 <div id="biosset_list" class="infos">
 <h2><a name="biosset_list">BIOS set</a></h2>
 <table>
@@ -519,8 +512,7 @@ if ($has_info['games_biosset']) {
 <?php
 if ($has_info['games_chip']) {
 	$fields = get_fields_info('games_chip');
-	$res = $database->query("SELECT * FROM games_chip WHERE game='$game_name_escape'") or die("Unable to query database : ".array_pop($database->errorInfo()));
-?>
+	$res = $database->query("SELECT * FROM games_chip WHERE game='$game_name_escape'"); ?>
 <div id="chip_info" class="infos">
 <h2><a name="chip_list">Chips list</a></h2>
 <table>
@@ -545,8 +537,7 @@ if ($has_info['games_chip']) {
 <?php
 if ($has_info['games_sample']) {
 	$fields = get_fields_info('games_sample');
-	$res = $database->query("SELECT * FROM games_sample WHERE game='$game_name_escape'") or die("Unable to query database : ".array_pop($database->errorInfo()));
-?>
+	$res = $database->query("SELECT * FROM games_sample WHERE game='$game_name_escape'"); ?>
 <div id="sample_info" class="infos">
 <h2><a name="sample_list">Samples list</a></h2>
 <table>
@@ -571,8 +562,7 @@ if ($has_info['games_sample']) {
 <?php
 if ($has_info['games_disk']) {
 	$fields = get_fields_info('games_disk');
-	$res = $database->query("SELECT * FROM games_disk WHERE game='$game_name_escape'") or die("Unable to query database : ".array_pop($database->errorInfo()));
-?>
+	$res = $database->query("SELECT * FROM games_disk WHERE game='$game_name_escape'"); ?>
 <div id="disk_info" class="infos">
 <h2><a name="disk_list">Disks list</a></h2>
 <table>
@@ -596,7 +586,7 @@ if ($has_info['games_disk']) {
 <!-- SERIES LIST -->
 <?php
 if ($has_info['games_series']) {
-	$res = $database->query("SELECT * FROM games_series GS,series S WHERE GS.game='$game_name_escape' AND GS.serie_id=S.id") or die("Unable to query database : ".array_pop($database->errorInfo()));
+	$res = $database->query("SELECT * FROM games_series GS,series S WHERE GS.game='$game_name_escape' AND GS.serie_id=S.id");
 	$row = $res->fetch(PDO::FETCH_ASSOC);
 ?>
 <div id="serie_info" class="infos">
@@ -605,13 +595,13 @@ if ($has_info['games_series']) {
 	<ol class="series">
 <?php
 $serie_id = $row['id'];
-$res = $database->query("SELECT G.description,G.name,G.year FROM games_series GS, games G WHERE GS.game=G.name AND GS.serie_id='$serie_id' ORDER BY G.year ASC") or die("Unable to query database : ".array_pop($database->errorInfo()));
+$res = $database->query("SELECT G.description,G.name,G.year FROM games_series GS, games G WHERE GS.game=G.name AND GS.serie_id='$serie_id' ORDER BY G.year ASC");
 while($row = $res->fetch(PDO::FETCH_ASSOC)) { ?>
 		<li>
 <?php	if ($row['name']==$game_name) { // this game ?>
 			<?=$row['description']?> (<?=$row['year']?>)
 <?php	} else { // not this game ?>
-			<a href="<?=$_SERVER['PHP_SELF']?>?name=<?=$row['name']?>"><?=$row['description']?></a> (<?=$row['year']?>)	
+			<a href="?name=<?=$row['name']?>"><?=$row['description']?></a> (<?=$row['year']?>)	
 <?php	} ?>
 		</li>
 <?php } ?>
@@ -623,16 +613,15 @@ while($row = $res->fetch(PDO::FETCH_ASSOC)) { ?>
 <!-- CATEGORIES LIST -->
 <?php
 if ($has_info['categories']) {
-	$res = $database->query("SELECT * FROM categories WHERE game='$game_name_escape' ORDER BY version_added DESC") or die("Unable to query database : ".array_pop($database->errorInfo()));
-?>
+	$res = $database->query("SELECT * FROM categories WHERE game='$game_name_escape' ORDER BY version_added DESC"); ?>
 <div id="categories_info" class="infos">
 <h2><a name="categories_info">Categories</a></h2>
 	<ul class="categories">
 <?php while($row = $res->fetch(PDO::FETCH_ASSOC)) { 
 	if ($row['version_added'] == 1) { ?>
-		<li>Added to Mame in version <a href="search.php?categorie=<?=$row['categorie']?>"><?=$row['categorie']?></a></li>	
+		<li><a href="results.php?categorie=<?=urlencode($row['categorie'])?>">Added to Mame in version <?=$row['categorie']?></a></li>
 <?php } else { ?>
-		<li><a href="search.php?categorie=<?=$row['categorie']?>"><?=$row['categorie']?></a></li>
+		<li><a href="results.php?categorie=<?=urlencode($row['categorie'])?>"><?=$row['categorie']?></a></li>
 <?php }
 	} ?>
 	</ul>
@@ -643,8 +632,7 @@ if ($has_info['categories']) {
 <!-- MAMEINFO LIST -->
 <?php
 if ($has_info['mameinfo']) {
-	$res = $database->query("SELECT * FROM mameinfo WHERE game='$game_name_escape'") or die("Unable to query database : ".array_pop($database->errorInfo()));
-?>
+	$res = $database->query("SELECT * FROM mameinfo WHERE game='$game_name_escape'"); ?>
 <div id="mameinfo_info" class="infos">
 <h2><a name="mameinfo_info">MAMEinfo</a></h2>
 <?php while($row = $res->fetch(PDO::FETCH_ASSOC)) {
@@ -657,8 +645,7 @@ if ($has_info['mameinfo']) {
 <!-- HISTORIES -->
 <?php
 if ($has_info['games_histories']) {
-	$res = $database->query("SELECT * FROM games_histories GH,histories H WHERE GH.game='$game_name_escape' AND GH.history_id=H.id") or die("Unable to query database : ".array_pop($database->errorInfo()));
-?>
+	$res = $database->query("SELECT * FROM games_histories GH,histories H WHERE GH.game='$game_name_escape' AND GH.history_id=H.id"); ?>
 <div id="stories_info" class="infos">
 <h2><a name="stories_info">History</a></h2>
 <?php $row = $res->fetch(PDO::FETCH_ASSOC) ?>
@@ -673,8 +660,7 @@ if ($has_info['games_histories']) {
 <!-- COMMAND LIST -->
 <?php
 if ($has_info['games_command']) {
-	$res = $database->query("SELECT * FROM games_command GC,command C WHERE GC.game='$game_name_escape' and GC.command_id=C.id") or die("Unable to query database : ".array_pop($database->errorInfo()));
-?>
+	$res = $database->query("SELECT * FROM games_command GC,command C WHERE GC.game='$game_name_escape' and GC.command_id=C.id"); ?>
 <div id="command_list" class="infos">
 <h2><a name="command_list">Commands list</a></h2>
 <?php while($row = $res->fetch(PDO::FETCH_ASSOC)) { ?>
@@ -687,8 +673,7 @@ if ($has_info['games_command']) {
 <!-- CHEATS LIST -->
 <?php
 if ($has_info['cheats']) {
-	$res = $database->query("SELECT * FROM cheats WHERE game='$game_name_escape'") or die("Unable to query database : ".array_pop($database->errorInfo()));
-?>
+	$res = $database->query("SELECT * FROM cheats WHERE game='$game_name_escape'"); ?>
 <div id="cheats_list" class="infos">
 <h2><a name="cheats_list">Cheats</a></h2>
 	<ul>
@@ -697,7 +682,7 @@ if ($has_info['cheats']) {
 		<li>
 			<?=$row['cheat']?>
 			<ul>
-<?php			$res2 = $database->query("SELECT * FROM cheats_options WHERE cheat_id='$row[id]'") or die("Unable to query database : ".array_pop($database->errorInfo()));
+<?php			$res2 = $database->query("SELECT * FROM cheats_options WHERE cheat_id='$row[id]'");
 				while($row2 = $res2->fetch(PDO::FETCH_ASSOC)) { ?>
 					<li><?=$row2['option']?></li>
 <?php			} ?>
@@ -713,8 +698,7 @@ if ($has_info['cheats']) {
 <!-- STORIES LIST -->
 <?php
 if ($has_info['stories']) {
-	$res = $database->query("SELECT * FROM stories WHERE game='$game_name_escape'") or die("Unable to query database : ".array_pop($database->errorInfo()));
-?>
+	$res = $database->query("SELECT * FROM stories WHERE game='$game_name_escape'"); ?>
 <div id="highscore_info" class="infos">
 <h2><a name="highscore_info">High scores</a></h2>
 <?php while($row = $res->fetch(PDO::FETCH_ASSOC)) { ?>
