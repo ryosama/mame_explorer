@@ -1,7 +1,5 @@
 <?php
-$page_start_timer = microtime();
-
-// page de resultat de recherchye de rom
+// Result search page
 include_once('inc/config.php');
 include_once('inc/functions.php');
 $database = load_database();
