@@ -1,15 +1,13 @@
 <?php
-$page_start_timer = microtime();
-
 // rom page presentation
 include_once('inc/config.php');
 include_once('inc/functions.php');
 $database = load_database();
 
-if (isset($_GET['name']) && $_GET['name']) {
+if (isset($_GET['name']) && $_GET['name']) { // a game is specify
 	$game_name = $_GET['name'];
-} else {
-	// find a random game
+
+} else { // no game specify --> find a random game
 	$res = $database->query("SELECT name FROM games WHERE cloneof is NULL and runnable=1 ORDER BY random() LIMIT 0,1") or die("Unable to query database : ".array_pop($database->errorInfo()));
 	$row = $res->fetch(PDO::FETCH_ASSOC);
 	$game_name = $row['name'];
