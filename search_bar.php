@@ -13,38 +13,29 @@ session_start();
 $pageno = isset($_GET['pageno']) ? $_GET['pageno'] : 1;
 
 // search comes from a link manufacturer
-if (isset($_GET['manufacturer']) && strlen($_GET['manufacturer'])>0) {
+foreach (array('manufacturer','sourcefile','nplayers','categorie','language','evaluation','mature','genre') as $criteria) {
 	$pageno = 1;
-	// reset other criteria
-	$_SESSION['rom_name'] = $_SESSION['from_year'] = $_SESSION['to_year'] = $_SESSION['sourcefile'] = '';
+	reset_session_except($criteria);
 }
 
 // search comes from a link year
 if (isset($_GET['year']) && is_numeric($_GET['year']) && strlen($_GET['year'])>0) {
 	$pageno = 1;
-	// reset other criteria
-	$_SESSION['rom_name'] = $_SESSION['manufacturer'] = $_SESSION['sourcefile'] = '';
+	reset_session_except('from_year','to_year');
 	$_SESSION['from_year'] = $_SESSION['to_year'] = $_GET['year'];
-}
-
-// search comes from a link sourcefile
-if (isset($_GET['sourcefile']) && strlen($_GET['sourcefile'])>0) {
-	$pageno = 1;
-	// reset other criteria
-	$_SESSION['rom_name'] = $_SESSION['manufacturer'] = $_SESSION['from_year'] = $_SESSION['to_year'] = '';
 }
 
 
 // reset pagination
 if (isset($_POST['new_search']) && $_POST['new_search']==1) {
 	$pageno = 1;
-	$_SESSION['sourcefile'] = '';
+	reset_session_except('rom_name','manufacturer','from_year','to_year');
 }
 
 
 // build the session info
 // init session key
-foreach (array('rom_name','hide_clones','manufacturer','from_year','to_year','sourcefile','order_by','reverse_order','limit','pageno') as $key) {
+foreach (array('rom_name','hide_clones','manufacturer','from_year','to_year','sourcefile','nplayers','categorie','language','evaluation','mature','genre','order_by','reverse_order','limit','pageno') as $key) {
 	if (!isset($_SESSION[$key])) $_SESSION[$key] = '';
 	if (isset($_POST[$key])) 	 $_SESSION[$key] = $_POST[$key];
 	if (isset($_GET[$key])) 	 $_SESSION[$key] = $_GET[$key];

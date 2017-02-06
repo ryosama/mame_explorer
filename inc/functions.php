@@ -47,6 +47,17 @@ function game_has_info($game) {
 }
 
 
+function reset_session_except() {
+	static $criterias = array('rom_name','manufacturer','from_year','to_year','sourcefile','nplayers','categorie','language','evaluation','mature','genre'); // all criterias
+	$except_criterias = func_get_args(); // do not reset thoses criterias
+    for ($i=0; $i < sizeof($criterias) ; $i++) {
+    	if (!in_array($criterias[$i],$except_criterias))
+    		$_SESSION[$criterias[$i]] = '';
+    }
+}
+
+
+
 if (!function_exists('sqlite_escape_string')) {
 	function sqlite_escape_string($string) {
 		$string = str_replace("'", "''", $string);

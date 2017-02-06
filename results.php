@@ -25,8 +25,8 @@ $database = load_database();
 <!-- RESULT LIST -->
 <?php
 	// build SQL request	
-	$tables = 'games';
-	$fields = '*';
+	$tables = array('games');
+	$fields = array('games.*');
 
 	$where = array();
 
@@ -64,6 +64,41 @@ $database = load_database();
 	if (strlen($_SESSION['sourcefile'])>0)
 		array_push($where,"games.sourcefile = '".sqlite_escape_string($_SESSION['sourcefile'])."'");
 
+	// nplayers
+	if (strlen($_SESSION['nplayers'])>0) {
+		$tables[] = "LEFT JOIN nplayers ON games.name=nplayers.game"; // add table nplayers
+		array_push($where,"nplayers.players = '".sqlite_escape_string($_SESSION['nplayers'])."'");
+	}
+
+	// nplayers
+	if (strlen($_SESSION['categorie'])>0) {
+		$tables[] = "LEFT JOIN categories ON games.name=categories.game"; // add table categories
+		array_push($where,"categories.categorie = '".sqlite_escape_string($_SESSION['categorie'])."'");
+	}
+
+	// language
+	if (strlen($_SESSION['language'])>0) {
+		$tables[] = "LEFT JOIN games_languages ON games.name=games_languages.game LEFT JOIN languages ON games_languages.language_id=languages.id"; // add table language
+		array_push($where,"languages.language = '".sqlite_escape_string($_SESSION['language'])."'");
+	}
+
+	// evaluation
+	if (strlen($_SESSION['evaluation'])>0) {
+		$tables[] = "LEFT JOIN bestgames ON games.name=bestgames.game"; // add table language
+		array_push($where,"bestgames.evaluation = '".sqlite_escape_string($_SESSION['evaluation'])."'");
+	}
+
+	// mature
+	if (strlen($_SESSION['mature'])>0 && $_SESSION['mature']=='on') {
+		$tables[] = "INNER JOIN mature ON games.name=mature.game"; // add table mature
+	}
+
+	// genre
+	if (strlen($_SESSION['genre'])>0) {
+		$tables[] = "LEFT JOIN genre ON games.name=genre.game"; // add table genre
+		array_push($where,"genre.genre = '".sqlite_escape_string($_SESSION['genre'])."'");
+	}
+
 	// only runnables
 	array_push($where,"games.runnable = '1'");
 
@@ -79,6 +114,9 @@ $database = load_database();
 
 	// limit
 	$limit = ($pageno - 1) * $_SESSION['limit'] .",$_SESSION[limit] ";
+
+	$fields = join(',',$fields);
+	$tables = join(' ',$tables);
 
 	$sql = <<<EOT
 SELECT $fields
