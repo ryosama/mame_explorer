@@ -60,6 +60,10 @@ $database = load_database();
 	if (is_numeric($_SESSION['to_year']))
 		array_push($where,"games.year <= '".sqlite_escape_string($_SESSION['to_year'])."'");
 
+	// sourcefile
+	if (strlen($_SESSION['sourcefile'])>0)
+		array_push($where,"games.sourcefile = '".sqlite_escape_string($_SESSION['sourcefile'])."'");
+
 	// only runnables
 	array_push($where,"games.runnable = '1'");
 

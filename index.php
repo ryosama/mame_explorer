@@ -151,7 +151,7 @@ foreach ($fields as $field_name => $field_type) {
 			<span class="labels"><?=ucfirst($field_name)?></span>
 			<span class="values">
 <?php			if (in_array($field_name,$search_info)) { // if search criteria ?>
-					<a href="search.php?<?=$field_name?>=<?=$row_game[$field_name]?>"><?=$fields[$field_name]=='BOOL' ? bool2yesno($row_game[$field_name]) : $row_game[$field_name] ?></a>
+					<a href="results.php?<?=$field_name?>=<?=$row_game[$field_name]?>"><?=$fields[$field_name]=='BOOL' ? bool2yesno($row_game[$field_name]) : $row_game[$field_name] ?></a>
 <?php			} else { ?>
 					<?=$fields[$field_name]=='BOOL' ? bool2yesno($row_game[$field_name]) : $row_game[$field_name] ?>
 <?php			} ?>
@@ -165,7 +165,7 @@ foreach ($fields as $field_name => $field_type) {
 		while($row = $res->fetch(PDO::FETCH_ASSOC)) { ?>
 			<div id="game_nplayers" class="info">
 				<span class="labels">Number of players</span>
-				<span class="values"><?=$row['players']?></span>
+				<span class="values"><?=$row['players']?></span><!-- TO DO link -->
 			</div>
 <?php
 		}
@@ -173,8 +173,8 @@ foreach ($fields as $field_name => $field_type) {
 		$res = $database->query("SELECT * FROM categories WHERE game='$game_name_escape' AND version_added=1") or die("Unable to query database : ".array_pop($database->errorInfo()));
 		$row = $res->fetch(PDO::FETCH_ASSOC); ?>
 		<div id="game_add_in_mame" class="info">
-			<span class="labels">Added to MAME in version</span>
-			<span class="values"><?=$row['categorie']?></span>
+			<span class="labels">Added to MAME</span>
+			<span class="values"><?=$row['categorie']?></span><!-- TO DO link -->
 		</div>
 
 <?php
@@ -198,7 +198,7 @@ foreach ($fields as $field_name => $field_type) {
 		if (strlen($row['language'])>0) { ?>
 			<div id="game_language" class="info">
 				<span class="labels">Language</span>
-				<span class="values"><?=$row['language']?></span>
+				<span class="values"><?=$row['language']?></span><!-- TO DO link -->
 			</div>
 <?php   } ?>
 <?php
@@ -207,7 +207,7 @@ foreach ($fields as $field_name => $field_type) {
 		if (strlen($row['evaluation'])>0) { ?>
 			<div id="game_evaluation" class="info">
 				<span class="labels">Evaluation</span>
-				<span class="values"><?=$row['evaluation']?></span>
+				<span class="values"><?=$row['evaluation']?></span><!-- TO DO link -->
 			</div>
 <?php   } ?>
 <?php
@@ -216,7 +216,7 @@ foreach ($fields as $field_name => $field_type) {
 		if ($row['mature'] > 0) { ?>
 			<div id="game_mature" class="info">
 				<span class="labels">Mature</span>
-				<span class="values">This game is for adults only</span>
+				<span class="values">This game is for adults only</span><!-- TO DO link -->
 			</div>
 <?php   } ?>
 <?php
@@ -225,7 +225,7 @@ foreach ($fields as $field_name => $field_type) {
 		if (strlen($row['genre']) > 0) { ?>
 			<div id="game_genre" class="info">
 				<span class="labels">Genre</span>
-				<span class="values"><?=$row['genre']?></span>
+				<span class="values"><?=$row['genre']?></span><!-- TO DO link -->
 			</div>
 <?php   } ?>
 </div>
@@ -238,21 +238,21 @@ foreach ($fields as $field_name => $field_type) {
 		<span class="labels">Parent</span>
 <?php		$res = $database->query("SELECT description FROM games WHERE name='$cloneof'") or die("Unable to query database : ".array_pop($database->errorInfo())); 
 			$row = $res->fetch(PDO::FETCH_ASSOC);
-			echo $cloneof ? "<a href=\"$_SERVER[PHP_SELF]?name=$cloneof\">$cloneof</a> : $row[description]" : 'This game is a parent';
+			echo $cloneof ? "<a href=\"?name=$cloneof\">$cloneof</a> : $row[description]" : 'This game is a parent';
 ?>
 	</div>
 <?php	if (!$cloneof) { // if parent ?>
 			<ul><span class="labels">Clones</span>
 <?php 			$res = $database->query("SELECT name,description,year FROM games WHERE cloneof='$game_name_escape' ORDER BY year ASC,description ASC") or die("Unable to query database : ".array_pop($database->errorInfo())); 
 				while ($row = $res->fetch(PDO::FETCH_ASSOC)) { ?>
-					<li><a href="<?=$_SERVER['PHP_SELF']?>?name=<?=$row['name']?>"><?=$row['name']?></a> : <?=$row['description']?> (<?=$row['year']?>)</li>
+					<li><a href="?name=<?=$row['name']?>"><?=$row['name']?></a> : <?=$row['description']?> (<?=$row['year']?>)</li>
 <?php			} ?>
 			</ul>
 <?php	} else { // if clone ?>
 			<ul><span class="labels">Other clones</span>
 <?php 			$res = $database->query("SELECT name,description,year FROM games WHERE cloneof='$cloneof' ORDER BY year ASC,description ASC") or die("Unable to query database : ".array_pop($database->errorInfo())); 
 				while ($row = $res->fetch(PDO::FETCH_ASSOC)) { ?>
-					<li><a href="<?=$_SERVER['PHP_SELF']?>?name=<?=$row['name']?>"><?=$row['name']?></a> : <?=$row['description']?> (<?=$row['year']?>)</li>
+					<li><a href="?name=<?=$row['name']?>"><?=$row['name']?></a> : <?=$row['description']?> (<?=$row['year']?>)</li>
 <?php			} ?>
 			</ul>
 <?php	} ?>
@@ -611,7 +611,7 @@ while($row = $res->fetch(PDO::FETCH_ASSOC)) { ?>
 <?php	if ($row['name']==$game_name) { // this game ?>
 			<?=$row['description']?> (<?=$row['year']?>)
 <?php	} else { // not this game ?>
-			<a href="<?=$_SERVER['PHP_SELF']?>?name=<?=$row['name']?>"><?=$row['description']?></a> (<?=$row['year']?>)	
+			<a href="?name=<?=$row['name']?>"><?=$row['description']?></a> (<?=$row['year']?>)	
 <?php	} ?>
 		</li>
 <?php } ?>
@@ -630,9 +630,11 @@ if ($has_info['categories']) {
 	<ul class="categories">
 <?php while($row = $res->fetch(PDO::FETCH_ASSOC)) { 
 	if ($row['version_added'] == 1) { ?>
-		<li>Added to Mame in version <a href="search.php?categorie=<?=$row['categorie']?>"><?=$row['categorie']?></a></li>	
+		<!-- TO DO <li>Added to Mame in version <a href="search.php?categorie=<?=$row['categorie']?>"><?=$row['categorie']?></a></li>-->
+		<li>Added to Mame in version <?=$row['categorie']?></li>
 <?php } else { ?>
-		<li><a href="search.php?categorie=<?=$row['categorie']?>"><?=$row['categorie']?></a></li>
+		<!-- TO DO <li><a href="search.php?categorie=<?=$row['categorie']?>"><?=$row['categorie']?></a></li>-->
+		<li><?=$row['categorie']?></li>
 <?php }
 	} ?>
 	</ul>
