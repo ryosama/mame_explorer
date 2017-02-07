@@ -159,7 +159,7 @@ if ($_SESSION['from_year'] > $_SESSION['to_year']) {
 
 <div id="search-submit">
 	<a id="submit-search" class="btn" href="#">
-  		<i class="fa fa-search fa-small"></i> Search
+		<i class="fa fa-search fa-small"></i> Search
 	</a>
 </div>
 

@@ -1,6 +1,10 @@
 var timer;
 
 $(document).ready(function() {
+	// click on media and display lightbox
+	$(function() {
+		$('#snapshot a').lightBox({fixedNavigation:true});
+	});
 
 	// search
 	$('#submit-search').on('click', function(e){

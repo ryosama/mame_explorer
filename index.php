@@ -37,6 +37,21 @@ $has_info = game_has_info($game_name);
 <script type="text/javascript" src="js/jquery.lightbox.js"></script>
 <link rel="stylesheet" type="text/css" href="css/jquery.lightbox.css" media="screen" />
 <script type="text/javascript" src="js/stacktable.min.js"></script>
+
+<script language="javascript">
+
+function show_media(link,media_type) {
+	$('#snapshot').html(
+		$(link).text() +
+		'<br/>'+
+		'<a href="<?=MEDIA_PATH?>/'+media_type+'/<?=$game_name?>.'+(media_type=='icons'?'ico':'png')+'">' +
+		'<img src="<?=MEDIA_PATH?>/'+media_type+'/<?=$game_name?>.'+(media_type=='icons'?'ico':'png')+'" class="media"/></a>'
+	);
+	$('#snapshot a').lightBox({fixedNavigation:true});
+}
+
+</script>
+
 </head>
 <body>
 
@@ -74,26 +89,15 @@ $has_info = game_has_info($game_name);
 	<?php if ($has_info['stories']) { 				?><li><a href="#highscore_info">High scores</a></li><?php } ?>
 </ol>
 
-<script language="javascript">
+<?php	$res = $database->query("SELECT romset_size,romset_file,romset_zip FROM mameinfo WHERE game='$game_name_escape'");
+		$row_rom_size = $res->fetch(PDO::FETCH_ASSOC);
+?>
 
-function show_media(link,media_type) {
-	$('#snapshot').html(
-		$(link).text() +
-		'<br/>'+
-		'<a href="<?=MEDIA_PATH?>/'+media_type+'/<?=$game_name?>.'+(media_type=='icons'?'ico':'png')+'">' +
-		'<img src="<?=MEDIA_PATH?>/'+media_type+'/<?=$game_name?>.'+(media_type=='icons'?'ico':'png')+'" class="media"/></a>'
-	);
-	$('#snapshot a').lightBox({fixedNavigation:true});
-}
-
-$(document).ready(function(){
-	$(function() {
-		$('#snapshot a').lightBox({fixedNavigation:true});
-	});
-});
-
-</script>
-
+<div id="download">
+	<a class="btn" href="https://archive.org/download/MAME_0_161_ROMs/MAME_0.161_ROMs.tar/MAME 0.161 ROMs/<?=urlencode($game_name)?>.zip">
+		<i class="fa fa-download fa-small"></i> Download <?=$game_name?>.zip (<?=HumanReadableFilesize($row_rom_size['romset_size'] * 1024)?>)
+	</a>
+</div>
 
 <div id="media">
 <?php	$media_type = array(
@@ -122,6 +126,7 @@ $(document).ready(function(){
 <?php 		}
 		} ?>
 	</ul>
+
 	<div id="snapshot">
 <?php	if (file_exists(MEDIA_PATH."/snap/$game_name.png")) { ?>
 			Snapshot<br/>
@@ -131,6 +136,8 @@ $(document).ready(function(){
 			<a href="<?=MEDIA_PATH?>/titles/<?=$game_name?>.png"><img src="<?=MEDIA_PATH?>/titles/<?=$game_name?>.png" class="media"/></a>
 <?php 	} ?>
 	</div>
+
+	
 </div>
 
 
@@ -174,19 +181,17 @@ foreach ($fields as $field_name => $field_type) {
 			<span class="values"><a href="results.php?categorie=<?=urlencode($row['categorie'])?>"><?=$row['categorie']?></a></span>
 		</div>
 
-<?php	$res = $database->query("SELECT romset_size,romset_file,romset_zip FROM mameinfo WHERE game='$game_name_escape'");
-		$row = $res->fetch(PDO::FETCH_ASSOC); ?>
 		<div id="game_romset_size" class="info">
 			<span class="labels">Romset size</span>
-			<span class="values"><?=HumanReadableFilesize($row['romset_size'] * 1024)?></span>
+			<span class="values"><?=HumanReadableFilesize($row_rom_size['romset_size'] * 1024)?></span>
 		</div>
 		<div id="game_romset_size" class="info">
 			<span class="labels">Romset file</span>
-			<span class="values"><?=$row['romset_file']?> files</span>
+			<span class="values"><?=$row_rom_size['romset_file']?> files</span>
 		</div>
 		<div id="game_romset_size" class="info">
 			<span class="labels">Romset zip</span>
-			<span class="values"><?=HumanReadableFilesize($row['romset_zip'])?></span>
+			<span class="values"><?=HumanReadableFilesize($row_rom_size['romset_zip'])?></span>
 		</div>
 
 <?php	$res = $database->query("SELECT L.language FROM languages L LEFT JOIN games_languages GL ON L.id=GL.language_id WHERE GL.game='$game_name_escape'"); ?>
