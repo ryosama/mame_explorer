@@ -101,10 +101,14 @@ h2 a {
 }
 
 #summary {
-	margin-bottom:2em;
 	list-style-type:square;
 	width:30%;
 	float:left;
+}
+
+#download {
+	margin-bottom:10px;
+	text-align:center;
 }
 
 .infos {
