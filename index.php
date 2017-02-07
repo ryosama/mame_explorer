@@ -89,15 +89,22 @@ function show_media(link,media_type) {
 	<?php if ($has_info['stories']) { 				?><li><a href="#highscore_info">High scores</a></li><?php } ?>
 </ol>
 
-<?php	$res = $database->query("SELECT romset_size,romset_file,romset_zip FROM mameinfo WHERE game='$game_name_escape'");
-		$row_rom_size = $res->fetch(PDO::FETCH_ASSOC);
+<?php
+$res = $database->query("SELECT romset_size,romset_file,romset_zip FROM mameinfo WHERE game='$game_name_escape'");
+$row_rom_size = $res->fetch(PDO::FETCH_ASSOC);
+$res = $database->query("SELECT * FROM categories WHERE game='$game_name_escape' AND version_added=1");
+$row_version = $res->fetch(PDO::FETCH_ASSOC);
 ?>
 
+<?php 
+$add_in_mame = preg_replace('/^(\.\d{3}).*/','$1',$row_version['categorie']);
+if ($add_in_mame <= 0.161) { // archives.org stop at v0.161 ?>
 <div id="download">
 	<a class="btn" href="https://archive.org/download/MAME_0_161_ROMs/MAME_0.161_ROMs.tar/MAME 0.161 ROMs/<?=urlencode($game_name)?>.zip">
 		<i class="fa fa-download fa-small"></i> Download <?=$game_name?>.zip (<?=HumanReadableFilesize($row_rom_size['romset_size'] * 1024)?>)
 	</a>
 </div>
+<?php } ?>
 
 <div id="media">
 <?php	$media_type = array(
@@ -174,11 +181,9 @@ foreach ($fields as $field_name => $field_type) {
 			</div>
 <?php	} ?>
 
-<?php	$res = $database->query("SELECT * FROM categories WHERE game='$game_name_escape' AND version_added=1");
-		$row = $res->fetch(PDO::FETCH_ASSOC); ?>
 		<div id="game_add_in_mame" class="info">
 			<span class="labels">Added to MAME</span>
-			<span class="values"><a href="results.php?categorie=<?=urlencode($row['categorie'])?>"><?=$row['categorie']?></a></span>
+			<span class="values"><a href="results.php?categorie=<?=urlencode($row_version['categorie'])?>"><?=$row_version['categorie']?></a></span>
 		</div>
 
 		<div id="game_romset_size" class="info">
