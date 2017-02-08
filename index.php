@@ -711,7 +711,30 @@ if ($has_info['games_command']) {
 <div id="command_list" class="infos">
 <h2><a name="command_list">Commands list</a></h2>
 <?php while($row = $res->fetch(PDO::FETCH_ASSOC)) { ?>
-	<pre class="command"><?=$row['command']?></pre>
+	<pre class="command"><?
+		$command = $row['command'];
+
+		// minusculs
+		$command = preg_replace('/_([abcdefghijklmnopqrstuvwxyz])/','<img src="images/keys-min/_$1.png"/> ',$command);
+		$command = preg_replace('/\^([xxx])/','<img src="images/keys-min/^$1.png"/> ',$command);
+
+		// majusculs
+		$command = preg_replace('/_([ABCDGHIKLMNOPQRSXZ])/','<img src="images/keys-maj/_$1.png"/> ',$command);
+		$command = preg_replace('/\^([EFGHIJMSTUVW])/','<img src="images/keys-maj/^$1.png"/> ',$command);
+
+		// other symbols
+		$command = preg_replace('/_([#\$%&\(\)\-@\[\]\^`\{\}~=+\.123456789!])/','<img src="images/keys-others/_$1.png"/> ',$command);
+		$command = preg_replace('/\^([12346789!\-=])/','<img src="images/keys-others/^$1.png"/> ',$command);
+
+		$command = str_replace('^?','<img src="images/keys-others/^interogation.png"/> ',$command);
+		$command = str_replace('^*','<img src="images/keys-others/^star.png"/> ',$command);
+		$command = str_replace('_<','<img src="images/keys-others/_inferior.png"/> ',$command);
+		$command = str_replace('_?','<img src="images/keys-others/_interogation.png"/> ',$command);
+		$command = str_replace('_*','<img src="images/keys-others/_star.png"/> ',$command);
+		$command = str_replace('_>','<img src="images/keys-others/_superior.png"/> ',$command);
+		
+		echo $command;
+	?></pre>
 <?php } ?>
 </div>
 <?php } // game has info ?>
