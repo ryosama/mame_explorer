@@ -83,6 +83,11 @@ $(document).ready(function() {
 </head>
 <body>
 
+<?php 	// eventualy include analytics
+		if (file_exists('js/analyticstracking.js'))
+			include_once('js/analyticstracking.js');
+?>
+
 <?php include_once('search_bar.php'); ?>
 
 <h1>
