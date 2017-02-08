@@ -11,26 +11,26 @@ my $running_on_windows = ($^O=~/Win/) ? 1:0;
 
 $|=1;
 
-#unlink('mame.sqlite') if -e 'mame.sqlite';
+unlink('mame.sqlite') if -e 'mame.sqlite';
 my $sqlite = DBI->connect('dbi:SQLite:mame.sqlite','','',{ RaiseError => 0, AutoCommit => 0 }) or die("Pas de DB");
 $sqlite->do("PRAGMA foreign_keys = ON;") or die "Can't enable foreign_keys pragma";
 
 my $sql;
 
 #create table
-# parse_mamelistxml();
+parse_mamelistxml();
 parse_mameinfo();
-# parse_nplayers();
-# parse_story();	
-# parse_catver();
-# parse_cheats();
-# parse_history();
-# parse_series();
-# parse_command();
-# parse_languages();
-# parse_bestgames();
-# parse_mature();
-# parse_genre();
+parse_nplayers();
+parse_story();	
+parse_catver();
+parse_cheats();
+parse_history();
+parse_series();
+parse_command();
+parse_languages();
+parse_bestgames();
+parse_mature();
+parse_genre();
 
 $sqlite->commit();
 $sqlite->disconnect();
