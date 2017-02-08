@@ -11,26 +11,26 @@ my $running_on_windows = ($^O=~/Win/) ? 1:0;
 
 $|=1;
 
-unlink('mame.sqlite') if -e 'mame.sqlite';
+#unlink('mame.sqlite') if -e 'mame.sqlite';
 my $sqlite = DBI->connect('dbi:SQLite:mame.sqlite','','',{ RaiseError => 0, AutoCommit => 0 }) or die("Pas de DB");
 $sqlite->do("PRAGMA foreign_keys = ON;") or die "Can't enable foreign_keys pragma";
 
 my $sql;
 
 #create table
-parse_mamelistxml();
+# parse_mamelistxml();
 parse_mameinfo();
-parse_nplayers();
-parse_story();	
-parse_catver();
-parse_cheats();
-parse_history();
-parse_series();
-parse_command();
-parse_languages();
-parse_bestgames();
-parse_mature();
-parse_genre();
+# parse_nplayers();
+# parse_story();	
+# parse_catver();
+# parse_cheats();
+# parse_history();
+# parse_series();
+# parse_command();
+# parse_languages();
+# parse_bestgames();
+# parse_mature();
+# parse_genre();
 
 $sqlite->commit();
 $sqlite->disconnect();
@@ -364,7 +364,7 @@ sub parse_mameinfo {
 	my $sql = <<EOT ;
 CREATE TABLE IF NOT EXISTS 'versions'	(
 	'version'		VARCHAR NOT NULL,
-	'date_build'	DATETIME,
+	'date_build'	DATE,
 	'games'			INTEGER,
 	'delta_games'	REAL,
 	'drivers'		INTEGER,
@@ -373,9 +373,15 @@ CREATE TABLE IF NOT EXISTS 'versions'	(
 );
 EOT
 	$sqlite->do($sql) or die "Can't create 'versions' table";
+
 	# create view 'get_last_version'
-	$sqlite->do("DROP VIEW IF EXISTS get_last_version") or die "Can't drop view on 'versions' table";
-	$sqlite->do("CREATE VIEW get_last_version AS SELECT * FROM versions ORDER BY date_build DESC LIMIT 0,1") or die "Can't create view on 'versions' table";
+	$sqlite->do("DROP VIEW IF EXISTS get_last_version") or die "Can't drop view get_last_version on 'versions' table";
+	$sqlite->do("CREATE VIEW get_last_version AS SELECT * FROM versions ORDER BY date_build DESC LIMIT 0,1") or die "Can't create view get_last_version on 'versions' table";
+
+	# create view 'get_first_version'
+	$sqlite->do("DROP VIEW IF EXISTS get_first_version") or die "Can't drop view get_first_version on 'versions' table";
+	$sqlite->do("CREATE VIEW get_first_version AS SELECT * FROM versions ORDER BY date_build ASC LIMIT 0,1") or die "Can't create view get_first_version on 'versions' table";
+
 	# create index on 'date_build'
 	$sqlite->do("CREATE INDEX 'versions_date_build' ON 'versions' ('date_build' ASC)") or die "Can't create index on 'versions' table";
 
@@ -406,11 +412,14 @@ EOT
 					(\d+)																		# day of release
 					(?:st|nd|th)\s+																# st, nd or th
 					(\d{4})\s+																	# year of release
-					(\d+)\s+																	# total number of games
-					([\+-]\d+)\s+																# number of games added or deleted
-					(\d+)\s*																	# total number of drivers
-					(.*)																		# other informations
-					$/ix) {																		# end of line	
+					(\d+)																		# total number of games
+					(?:																	# other informations are optionals
+						\s+																
+						([\+-]\d+)\s+															# number of games added or deleted
+						(\d+)\s*																# total number of drivers
+						(.*)																	# other informations
+					)?																	# block +game, drivers and info is optional
+					$/ix) {																		# end of line
 			my $version			= $1;
 			my $month			= $2;
 			my $day				= $3;
