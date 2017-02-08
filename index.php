@@ -15,11 +15,25 @@ if (isset($_GET['name']) && $_GET['name']) { // a game is specify
 
 $game_name_escape = sqlite_escape_string($game_name);
 
-// extract game info
+// extract info about the game
 $fields = array('description'=>'VARCHAR','name'=>'VARCHAR','manufacturer'=>'VARCHAR','year'=>'INTEGER','runnable'=>'BOOL','sourcefile'=>'VARCHAR');
 $res = $database->query("SELECT ".join(',',array_keys($fields)).",cloneof FROM games WHERE name='$game_name_escape'") or die("Unable to query database : ".array_pop($database->errorInfo()));
 $row_game = $res->fetch(PDO::FETCH_ASSOC);
 
+// get some clone info to display menu
+$cloneof = '';
+if ($row_game['cloneof'])
+	$cloneof = $row_game['cloneof'];
+
+$res = $database->query("SELECT count(*) as nb_child_clones FROM games WHERE cloneof='$game_name_escape'") or die("Unable to query database : ".array_pop($database->errorInfo()));
+$row = $res->fetch(PDO::FETCH_ASSOC);
+$nb_child_clones = $row['nb_child_clones'];
+
+$res = $database->query("SELECT count(*) as nb_brother_clones FROM games WHERE cloneof='$cloneof'") or die("Unable to query database : ".array_pop($database->errorInfo()));
+$row = $res->fetch(PDO::FETCH_ASSOC);
+$nb_brother_clones = $row['nb_brother_clones'];
+
+// get somes infos about the game for displaying menus
 $has_info = game_has_info($game_name);
 
 ?><html>
@@ -67,7 +81,7 @@ function show_media(link,media_type) {
 <!-- SUMMARY -->
 <ol id="summary">
 	<li><a href="#game_info">Game infos</a></li>
-	<li><a href="#clones_info">Parent and clones</a></li>
+	<?php if ($cloneof || $nb_child_clones>0) {		?><li><a href="#clones_info">Parent and Clones</a></li><?php } ?>
 	<li><a href="#sound_info">Sound</a></li>
 	<li><a href="#driver_info">Driver</a></li>
 	<li><a href="#input_info">Input</a></li>
@@ -152,10 +166,6 @@ if ($add_in_mame <= 0.161) { // archives.org stop at v0.161 ?>
 <div id="game_info" class="infos">
 <h2><a name="game_info">Game infos</a></h2>
 <?php
-$cloneof = '';
-if ($row_game['cloneof'])
-	$cloneof = $row_game['cloneof'];
-
 $search_info = array('manufacturer','year','sourcefile');
 foreach ($fields as $field_name => $field_type) {
 	if ($row_game[$field_name] != '') { // si qqchose a afficher ?>
@@ -240,32 +250,40 @@ foreach ($fields as $field_name => $field_type) {
 
 
 <!-- PARENT AND CLONES INFO -->
+<?php if ($cloneof || $nb_child_clones > 0) { ?>
 <div id="clones_info" class="infos">
 <h2><a name="clones_info">Parent and clones</a></h2>
 	<div id="parent">
 		<span class="labels">Parent</span>
-<?php		$res = $database->query("SELECT description FROM games WHERE name='$cloneof'") or die("Unable to query database : ".array_pop($database->errorInfo())); 
+<?php		$res = $database->query("SELECT description,year FROM games WHERE name='$cloneof'") or die("Unable to query database : ".array_pop($database->errorInfo())); 
 			$row = $res->fetch(PDO::FETCH_ASSOC);
-			echo $cloneof ? "<a href=\"?name=$cloneof\">$cloneof</a> : $row[description]" : 'This game is a parent';
-?>
-	</div>
-<?php	if (!$cloneof) { // if parent ?>
-			<ul><span class="labels">Clones</span>
-<?php 			$res = $database->query("SELECT name,description,year FROM games WHERE cloneof='$game_name_escape' ORDER BY year ASC,description ASC") or die("Unable to query database : ".array_pop($database->errorInfo())); 
-				while ($row = $res->fetch(PDO::FETCH_ASSOC)) { ?>
-					<li><a href="?name=<?=$row['name']?>"><?=$row['name']?></a> : <?=$row['description']?> (<?=$row['year']?>)</li>
-<?php			} ?>
-			</ul>
-<?php	} else { // if clone ?>
-			<ul><span class="labels">Other clones</span>
-<?php 			$res = $database->query("SELECT name,description,year FROM games WHERE cloneof='$cloneof' ORDER BY year ASC,description ASC") or die("Unable to query database : ".array_pop($database->errorInfo())); 
-				while ($row = $res->fetch(PDO::FETCH_ASSOC)) { ?>
-					<li><a href="?name=<?=$row['name']?>"><?=$row['name']?></a> : <?=$row['description']?> (<?=$row['year']?>)</li>
-<?php			} ?>
-			</ul>
-<?php	} ?>
-</div>
+			if ($cloneof) { // if this game is a clone ?>
+				<a href="?name=<?=$cloneof?>"><?=$cloneof?> : <?=$row['description']?> (<?=$row['year']?>)</a>
 
+<?php			if ($nb_brother_clones>0) { // and this clone has brothers ?>
+					<ul><span class="labels">Other clones</span>
+<?php 					$res = $database->query("SELECT name,description,year FROM games WHERE cloneof='$cloneof' ORDER BY year ASC,description ASC") or die("Unable to query database : ".array_pop($database->errorInfo()));
+						while ($row = $res->fetch(PDO::FETCH_ASSOC)) { ?>
+							<li><a href="?name=<?=$row['name']?>"><?=$row['name']?> : <?=$row['description']?> (<?=$row['year']?>)</a></li>
+<?php					} ?>
+					</ul>
+<?php			}
+
+			} else { ?>
+				This game is the parent
+
+<?php 			if ($nb_child_clones>0) { // and this parent has clones ?>
+					<ul><span class="labels">Clones</span>
+<?php 					$res = $database->query("SELECT name,description,year FROM games WHERE cloneof='$game_name_escape' ORDER BY year ASC,description ASC") or die("Unable to query database : ".array_pop($database->errorInfo()));
+						while ($row = $res->fetch(PDO::FETCH_ASSOC)) { ?>
+							<li><a href="?name=<?=$row['name']?>"><?=$row['name']?> : <?=$row['description']?> (<?=$row['year']?>)</a></li>
+<?php					} ?>
+					</ul>
+<?php				}
+	 		} ?>
+	</div>
+</div>
+<?php } ?>
 
 
 <!-- SOUND INFO -->
