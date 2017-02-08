@@ -1,5 +1,6 @@
 var timer;
 
+// when everything is ready
 $(document).ready(function() {
 	// click on media and display lightbox
 	$(function() {
@@ -55,15 +56,19 @@ $(document).ready(function() {
 
 }); // end on ready
 
+
+// change URL to direclty go to a game
 function goToGame(game) {
 	document.location.href='index.php?name='+game;
 }
 
+// change result page
 function change_page(select_obj) {
 	document.location.href='?pageno=' + select_obj[select_obj.selectedIndex].value ;
 }
 
 
+// display the manufacturer list starting with the kayboard entry
 function suggest_manufacturer() {
 	$('#suggest-manufacturer .suggest-container').html( '<i class="fa fa-spinner fa-pulse fa-3x fa-fw"></i>' );
 	
@@ -91,4 +96,28 @@ function suggest_manufacturer() {
 			$('#suggest-manufacturer').slideDown('fast');		
 		}
 	});
-} // fin function
+} // end function suggest_manufacturer
+
+
+
+// ask via AJAX if a video exists on this game and display a link to view it
+function look_for_video(game_name) {
+	$.ajax({
+		url 	: 'ajax.php',
+		dataType: 'json',
+		type 	: 'get',
+		data 	: 'what=get_video&game='+escape( game_name ),
+		success: function(data){
+			
+			if (data['response'].video_found) { // found a video --> append a media to the media list
+				// keep video html for later use in hidden place
+				$('#video').html( data['response'].video_html );
+
+				$('#media-list').append( // display a link
+					'<li onclick="show_video()">Video</li>'
+				);
+			}
+
+		}
+	});
+} // end function look_for_video

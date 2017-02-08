@@ -64,6 +64,20 @@ function show_media(link,media_type) {
 	$('#snapshot a').lightBox({fixedNavigation:true});
 }
 
+
+function show_video() {
+	$('#snapshot').html(
+		'Video' +
+		'<br/>'+
+		$('#video').html() // display html from hidden place
+	);
+}
+
+// when ready, look for a video
+$(document).ready(function() {
+	look_for_video('<?= $cloneof ? $cloneof : $game_name ?>');
+});
+
 </script>
 
 </head>
@@ -110,9 +124,10 @@ $res = $database->query("SELECT * FROM categories WHERE game='$game_name_escape'
 $row_version = $res->fetch(PDO::FETCH_ASSOC);
 ?>
 
-<?php 
+<?php
 $add_in_mame = preg_replace('/^(\.\d{3}).*/','$1',$row_version['categorie']);
 if ($add_in_mame <= 0.161) { // archives.org stop at v0.161 ?>
+<!-- DOWNLOAD LINK -->
 <div id="download">
 	<a class="btn" href="https://archive.org/download/MAME_0_161_ROMs/MAME_0.161_ROMs.tar/MAME 0.161 ROMs/<?=urlencode($game_name)?>.zip">
 		<i class="fa fa-download fa-small"></i> Download <?=$game_name?>.zip (<?=HumanReadableFilesize($row_rom_size['romset_size'] * 1024)?>)
@@ -120,6 +135,8 @@ if ($add_in_mame <= 0.161) { // archives.org stop at v0.161 ?>
 </div>
 <?php } ?>
 
+
+<!-- MEDIA LIST -->
 <div id="media">
 <?php	$media_type = array(
 			'snap'		=> 'Snapshot',
@@ -140,7 +157,7 @@ if ($add_in_mame <= 0.161) { // archives.org stop at v0.161 ?>
 			'icons'		=> 'Icon'
 		);
 ?>
-	<ul>
+	<ul id="media-list">
 <?php	foreach ($media_type as $media_id => $media_name) {
 			if (file_exists(MEDIA_PATH."/$media_id/$game_name.".($media_id == 'icons' ? 'ico':'png'))) { ?>
 				<li onclick="show_media(this,'<?=$media_id?>')"><?=$media_name?></li>
@@ -157,8 +174,7 @@ if ($add_in_mame <= 0.161) { // archives.org stop at v0.161 ?>
 			<a href="<?=MEDIA_PATH?>/titles/<?=$game_name?>.png"><img src="<?=MEDIA_PATH?>/titles/<?=$game_name?>.png" class="media"/></a>
 <?php 	} ?>
 	</div>
-
-	
+	<div id="video" style="display:none;"></div>
 </div>
 
 
