@@ -60,7 +60,7 @@ if (	isset($_GET['what']) && $_GET['what']=='get_manufacturer'
 		$video_title 	= $regs[2];
 		$video_website 	= 'youtube';
 		$video_url 		= 'https://www.youtube.com/watch?v='.urlencode($video_id);
-		$video_html 	= '<iframe width="320" height="240" src="https://www.youtube.com/embed/'.urlencode($video_id).'?rel=0&amp;showinfo=0&amp;autoplay=1" frameborder="0" allowfullscreen></iframe>';
+		$video_html 	= '<iframe width="320" height="240" src="https://www.youtube.com/embed/'.urlencode($video_id).'?rel=0&amp;showinfo=0&amp;autoplay=0" frameborder="0" allowfullscreen></iframe>';
 	}
 
 	header('Content-type: text/json');

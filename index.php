@@ -66,10 +66,12 @@ function show_media(link,media_type) {
 
 
 function show_video() {
+	var embed_video_html = $('#video').html().replace(/\bautoplay=0\b/,'autoplay=1');
+
 	$('#snapshot').html(
 		'Video' +
 		'<br/>'+
-		$('#video').html() // display html from hidden place
+		embed_video_html // display html from hidden place
 	);
 }
 
