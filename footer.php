@@ -1,8 +1,13 @@
 <div id="footer">
 
+<!-- LINK TO STATS PAGE -->
+<span id="stats-link">
+	<a href="stats.php">Statistics</a> - 
+</span>
+
 <!-- LINK TO GITHUB -->
 <span id="github-link">
-	<a href="https://github.com/ryosama/mame_explorer" target="_blank">Power by Mame explorer v1 (Github)</a> - 
+	<a href="https://github.com/ryosama/mame_explorer" target="_blank">Power by Mame explorer (Github)</a> - 
 </span>
 
 <!-- LAST MAME version -->

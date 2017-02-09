@@ -192,6 +192,12 @@ h2 a {
 	cursor:default !important;
 }
 
+/* stats */
+
+.stats td:last-child {
+	width:20%;
+}
+
 /* search-bar */
 
 #search-bar {
@@ -227,6 +233,8 @@ h2 a {
 	cursor:pointer;
 	float:right;
 }
+
+/* footer */
 
 #footer {
 	text-align:right;

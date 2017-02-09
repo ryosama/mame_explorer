@@ -124,8 +124,9 @@
 		display:none;
 	}
 
-	#footer {
-		display:none;
+	#footer span {
+		display:block;
+		text-align:center;
 	}
 }
 
