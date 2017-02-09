@@ -7,7 +7,6 @@
 </div>
 
 <?php
-session_start();
 
 // defautl value
 $pageno = isset($_GET['pageno']) ? $_GET['pageno'] : 1;
