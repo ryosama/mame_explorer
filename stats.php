@@ -6,7 +6,7 @@ $database = load_database();
 
 ?><html>
 <head>
-<title>Mame game : <?=$row_game['name']?> : <?=$row_game['description']?></title>
+<title>Mame explorer - statistics</title>
 <meta http-equiv="Content-Type" content="text/html; charset=iso8859-1">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link rel="stylesheet" href="css/font-awesome.min.css">
