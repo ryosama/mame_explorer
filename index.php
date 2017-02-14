@@ -336,7 +336,7 @@ $fields = array('driver_status'=>'VARCHAR','driver_emulation'=>'VARCHAR','driver
 $res = $database->query("SELECT ".join(',',array_keys($fields))." FROM games WHERE name='$game_name_escape'") or die("Unable to query database : ".array_pop($database->errorInfo()));
 $row = $res->fetch(PDO::FETCH_ASSOC)
 ?>
-<div id="sound_info" class="infos">
+<div id="driver_info" class="infos">
 <h2><a name="driver_info">Driver infos</a></h2>
 <?php
 foreach ($fields as $field_name => $field_type) { ?>
