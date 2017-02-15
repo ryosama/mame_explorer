@@ -197,7 +197,7 @@ EOT;
 		<tr><th>Top 10 games with more ROMS</th><th>ROMS</th></tr>
 		<?php while($row_best_roms = $res->fetch(PDO::FETCH_ASSOC)) { ?>
 				<tr>
-					<td><?=htmlentities($row_best_roms['description'])?> / <?=htmlentities($row_best_roms['console'])?></td>
+					<td><?=$row_best_roms['description']?> / <?=$row_best_roms['console']?></td>
 					<td><?=$row_best_roms['nb_roms']?></td>
 				</tr>
 		<? } ?>
@@ -239,7 +239,7 @@ EOT;
 		<tr><th>Top 10 systems with more games</th><th>Games</th></tr>
 		<?php while($row_best_console = $res->fetch(PDO::FETCH_ASSOC)) { ?>
 				<tr>
-					<td><?=htmlentities(strlen($row_best_console['description'])>0 ? $row_best_console['description'] : 'Arcade')?></td>
+					<td><?=strlen($row_best_console['description'])>0 ? $row_best_console['description'] : 'Arcade'?></td>
 					<td><?=$row_best_console['nb_games']?></td>
 				</tr>
 		<? } ?>
