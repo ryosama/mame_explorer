@@ -26,7 +26,7 @@ my $urls = [
 	{	'url' 	=> 'http://nplayers.arcadebelgium.be/',
 		'what' 	=> [qr/files\/nplayers[\d]+.zip$/i], # nplayers.ini
 		'file'	=> 'nplayers\d+\.zip$',
-		'where' => '.'
+		'where' => './folders'
 	},
 	{	'url' 	=> 'http://www.progettosnaps.net/series/',
 		'what' 	=> [qr/pS_Series\.zip$/i],	# series.ini
@@ -43,6 +43,11 @@ my $urls = [
 		'file'	=> 'pS_BestGames\.zip$',
 		'where' => './folders'
 	},
+	{	'url' 	=> 'http://www.progettosnaps.net/catver/',
+		'what' 	=> [qr/packs\/pS_CatVer\.zip$/i],		# catver.ini
+		'file'	=> 'cheat\d+\.zip$',
+		'where' => './folders'
+	},
 	{	'url' 	=> 'http://cheat.retrogames.com/',
 		'what' 	=> [qr/download\/cheat[\d]+\.zip$/i],	# cheats
 		'file'	=> 'cheat\d+\.zip$',
@@ -51,28 +56,22 @@ my $urls = [
 	{	'url' 	=> 'http://www.arcade-history.com/?page=download',
 		'what' 	=> [qr/dats\/history[\d]+\.7z$/i],	# history.dat
 		'file'	=> 'history\d+\.7z$',
-		'where' => '.'
+		'where' => './dats'
 	},
 	{	'url' 	=> 'http://www.arcadehits.net/mamescore/home.php?show=files',
 		'what' 	=> [qr/rss\/story\.dat$/i],	# story.dat
 		'file'	=> 'story\.dat$',
-		'where' => '.'
+		'where' => './dats'
 	},
 	{	'url' 	=> 'http://mameinfo.mameworld.info/',
 		'what' 	=> [qr/download\/Mameinfo[\d]+\.zip$/i],	# mameinfo.dat
 		'file'	=> 'Mameinfo\d+\.zip$',
-		'where' => '.'
-	},
-
-	{	'url' 	=> 'http://www.progettosnaps.net/catver/',
-		'what' 	=> [qr/packs\/pS_CatVer\.zip$/i],		# catver.ini
-		'file'	=> 'cheat\d+\.zip$',
-		'where' => './folders'
+		'where' => './dats'
 	},
 	{	'url' 	=> 'https://sites.google.com/site/procyonsjj/home/command-dat/',
 		'what' 	=> [qr/command-dat\/commandsh\.zip\?attredirects=0&d=1$/i],	# command.dat
 		'file'	=> 'commandsh\.zip$',
-		'where' => '.'
+		'where' => './dats'
 	}
 ];
 

@@ -11,10 +11,12 @@
 // defautl value
 $pageno = isset($_GET['pageno']) ? $_GET['pageno'] : 1;
 
-// search comes from a link manufacturer
-foreach (array('manufacturer','sourcefile','nplayers','categorie','language','evaluation','mature','genre') as $criteria) {
-	$pageno = 1;
-	reset_session_except($criteria);
+// search comes from a link
+foreach (array('manufacturer','sourcefile','nplayers','categorie','language','evaluation','mature','genre','console') as $criteria) {
+	if (isset($_GET[$criteria]) && strlen($_GET[$criteria])>0) {
+		$pageno = 1;
+		reset_session_except($criteria);
+	}
 }
 
 // search comes from a link year
@@ -34,7 +36,7 @@ if (isset($_POST['new_search']) && $_POST['new_search']==1) {
 
 // build the session info
 // init session key
-foreach (array('rom_name','hide_clones','manufacturer','from_year','to_year','sourcefile','nplayers','categorie','language','evaluation','mature','genre','order_by','reverse_order','limit','pageno') as $key) {
+foreach (array('rom_name','hide_clones','manufacturer','from_year','to_year','sourcefile','nplayers','categorie','language','evaluation','mature','genre','console','order_by','reverse_order','limit','pageno') as $key) {
 	if (!isset($_SESSION[$key])) $_SESSION[$key] = '';
 	if (isset($_POST[$key])) 	 $_SESSION[$key] = $_POST[$key];
 	if (isset($_GET[$key])) 	 $_SESSION[$key] = $_GET[$key];
@@ -63,13 +65,13 @@ foreach (array('hide_clones','reverse_order') as $checkbox) {
 
 // default values
 if ($_SESSION['from_year'] == '' || !is_numeric($_SESSION['from_year'])) {
-	$res = $database->query("SELECT MIN(year) as year FROM games WHERE year not like '%??%' LIMIT 0,1") or die("Unable to query database : ".array_pop($database->errorInfo()));
+	$res = $database->query("SELECT MIN(year) as year FROM games WHERE year not like '%?%' LIMIT 0,1") or die("Unable to query database : ".array_pop($database->errorInfo()));
 	$row = $res->fetch(PDO::FETCH_ASSOC);
 	$_SESSION['from_year'] = $row['year'];
 }
 
 if ($_SESSION['to_year'] == '' || !is_numeric($_SESSION['to_year'])) {
-	$res = $database->query("SELECT MAX(year) as year FROM games WHERE year not like '%??%' LIMIT 0,1") or die("Unable to query database : ".array_pop($database->errorInfo()));
+	$res = $database->query("SELECT MAX(year) as year FROM games WHERE year not like '%?%' LIMIT 0,1") or die("Unable to query database : ".array_pop($database->errorInfo()));
 	$row = $res->fetch(PDO::FETCH_ASSOC);
 	$_SESSION['to_year'] = $row['year'];
 }
@@ -142,10 +144,11 @@ if ($_SESSION['from_year'] > $_SESSION['to_year']) {
 <div id="search-order">
 	<label for="order_by">Order by</label>
 	<select name="order_by">
-		<option value="name"<?= 		$_SESSION['order_by']=='name' ? ' selected="selected"':'' 			?>>Name</option>
-		<option value="description"<?= 	$_SESSION['order_by']=='description' ? ' selected="selected"':'' 	?>>Description</option>
-		<option value="year"<?= 		$_SESSION['order_by']=='year' ? ' selected="selected"':'' 			?>>Year</option>
-		<option value="manufacturer"<?= $_SESSION['order_by']=='manufacturer' ? ' selected="selected"':'' 	?>>Manufacturer</option>
+		<option value="name"<?= 		$_SESSION['order_by']=='name' 		  ? ' selected="selected"':'' ?>>Name</option>
+		<option value="description"<?= 	$_SESSION['order_by']=='description'  ? ' selected="selected"':'' ?>>Description</option>
+		<option value="year"<?= 		$_SESSION['order_by']=='year' 		  ? ' selected="selected"':'' ?>>Year</option>
+		<option value="console"<?= 		$_SESSION['order_by']=='console' 	  ? ' selected="selected"':'' ?>>System</option>
+		<option value="manufacturer"<?= $_SESSION['order_by']=='manufacturer' ? ' selected="selected"':'' ?>>Manufacturer</option>
 	</select>
 	<input type="hidden" name="reverse_order[]" value=""/>
 	<label for="reverse_order">Reverse order</label><input type="checkbox" name="reverse_order[]" value="1"<?=$_SESSION['reverse_order'] ? 'checked="checked"':''?>/>

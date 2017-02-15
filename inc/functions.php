@@ -34,22 +34,39 @@ function bool2yesno($bool) {
 }
 
 
-function game_has_info($game) {
+function game_has_info($game,$game_type) {
 	global $database;
-	$has_info = array();
-	foreach (array(	'games_configuration','games_control','games_display','games_dipswitch','games_adjuster',
-					'games_rom','games_biosset','games_chip','games_sample','games_disk','games_series','categories',
-					'mameinfo','games_histories','games_command','cheats','stories') as $table) {
-		$res = $database->query("SELECT count(*) as has_info FROM $table WHERE game='".sqlite_escape_string($game)."'") or die("Unable to query database : ".array_pop($database->errorInfo()));
-		$row = $res->fetch(PDO::FETCH_ASSOC);
-		$has_info[$table] = $row['has_info'];
+	$has_info = array(
+		'sound'=>'','driver'=>'','input'=>'',
+		'games_configuration'=>'','games_control'=>'','games_display'=>'','games_dipswitch'=>'','games_adjuster'=>'',
+		'games_rom'=>'','games_biosset'=>'','games_chip'=>'','games_sample'=>'','games_disk'=>'','games_series'=>'','categories'=>'',
+		'mameinfo'=>'','games_histories'=>'','games_command'=>'','cheats'=>'','stories'=>''
+	);
+
+	if ($game_type == 'arcade') {
+		$informations = array(
+			'games_configuration','games_control','games_display','games_dipswitch','games_adjuster',
+			'games_rom','games_biosset','games_chip','games_sample','games_disk','games_series','categories',
+			'mameinfo','games_histories','games_command','cheats','stories'
+		);
+	} else {
+		$informations = array('games_rom');
 	}
+
+	foreach ($informations as $table) {
+		$has_info[$table] = '';
+		if ($res = $database->query("SELECT count(*) as has_info FROM $table WHERE game='".sqlite_escape_string($game)."'")) {
+			$row = $res->fetch(PDO::FETCH_ASSOC);
+			$has_info[$table] = $row['has_info'];
+		}
+	}
+
 	return $has_info;
 }
 
 
 function reset_session_except() {
-	static $criterias = array('rom_name','manufacturer','from_year','to_year','sourcefile','nplayers','categorie','language','evaluation','mature','genre'); // all criterias
+	static $criterias = array('rom_name','manufacturer','from_year','to_year','sourcefile','nplayers','categorie','language','evaluation','mature','genre','console'); // all criterias
 	$except_criterias = func_get_args(); // do not reset thoses criterias
     for ($i=0; $i < sizeof($criterias) ; $i++) {
     	if (!in_array($criterias[$i],$except_criterias))

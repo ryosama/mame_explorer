@@ -6,9 +6,9 @@ use XML::Simple;
 use File::Find;
 use File::Path;
 use Try::Tiny;
-use DBI qw(:sql_types); # pour gérer SQLite
+use XML::Simple;
+use DBI qw(:sql_types); # pour gÃ©rer SQLite
 my $running_on_windows = ($^O=~/Win/) ? 1:0;
-
 $|=1;
 
 unlink('mame.sqlite') if -e 'mame.sqlite';
@@ -19,6 +19,7 @@ my $sql;
 
 #create table
 parse_mamelistxml();
+parse_mamelistsoftware();
 parse_mameinfo();
 parse_nplayers();
 parse_story();	
@@ -43,9 +44,7 @@ sub parse_mamelistxml {
 	if (!-e 'mame.xml') {
 		generate_mamexml();
 	}
-	print "Parse 'mame.xml'... ";
-
-	use XML::Simple;
+	print "Parsing 'mame.xml'\n";
 	
 	# create_tables
 	create_table_games();
@@ -73,9 +72,9 @@ sub parse_mamelistxml {
 	my $category_id			= 1;
 	my $device_id			= 1;
 
-	my $sth_game = $sqlite->prepare("INSERT INTO games (name,sourcefile,isbios,runnable,cloneof,romof,sampleof,description,year,manufacturer,sound_channels,input_service,input_tilt,input_players,input_buttons,input_coins,driver_status,driver_emulation,driver_color,driver_sound,driver_graphic,driver_cocktail,driver_protection,driver_savestate) VALUES (".join(',', ('?')x24).")");
+	my $sth_game = $sqlite->prepare("INSERT INTO games (name,console,sourcefile,isbios,runnable,cloneof,romof,sampleof,description,year,manufacturer,sound_channels,input_service,input_tilt,input_players,input_buttons,input_coins,driver_status,driver_emulation,driver_color,driver_sound,driver_graphic,driver_cocktail,driver_protection,driver_savestate) VALUES (".join(',', ('?')x25).")");
 	my $sth_biosset = $sqlite->prepare("INSERT INTO games_biosset (game,name,description,'default') VALUES (?,?,?,?)");
-	my $sth_rom     = $sqlite->prepare("INSERT INTO games_rom (game,name,bios,size,crc,md5,sha1,merge,region,offset,status,optional) VALUES (".join(',', ('?')x12).")");
+	my $sth_rom     = $sqlite->prepare("INSERT INTO games_rom (game,console,name,bios,size,crc,md5,sha1,merge,region,offset,status,optional) VALUES (".join(',', ('?')x13).")");
 	my $sth_disk    = $sqlite->prepare("INSERT INTO games_disk (game,name,md5,sha1,merge,region,'index',status,optional) VALUES (".join(',', ('?')x9).")");
 	my $sth_sample  = $sqlite->prepare("INSERT INTO games_sample (game,name) VALUES (?,?)");
 	my $sth_chip    = $sqlite->prepare("INSERT INTO games_chip (game,name,tag,'type',clock) VALUES (?,?,?,?,?)");
@@ -109,7 +108,7 @@ sub parse_mamelistxml {
 			try {
 				$xml = XMLin(join("\n",@xml_game));
 			};
-		
+
 			# default value
 			$xml->{'isbios'}				= 'no'			if !exists $xml->{'isbios'};
 			$xml->{'runnable'}				= 'yes'			if !exists $xml->{'runnable'};
@@ -117,7 +116,8 @@ sub parse_mamelistxml {
 			$xml->{'input'}->{'tilt'}		= 'no'			if !exists $xml->{'input'}->{'tilt'};
 
 			$sth_game->execute(
-				$xml->{'name'},								$xml->{'sourcefile'},
+				$xml->{'name'},								'arcade',
+				$xml->{'sourcefile'},
 				yesno2bool($xml->{'isbios'}),				yesno2bool($xml->{'runnable'}),
 				$xml->{'cloneof'},							$xml->{'romof'},
 				$xml->{'sampleof'},							$xml->{'description'},
@@ -145,7 +145,7 @@ sub parse_mamelistxml {
 				$shortcut->{'status'} = 'good' if !exists $shortcut->{'status'};
 				$shortcut->{'optional'} = 'no' if !exists $shortcut->{'optional'};
 				$sth_rom->execute(
-					$xml->{'name'},			$rom_name,				$shortcut->{'bios'},
+					$xml->{'name'},			'arcade',				$rom_name,				$shortcut->{'bios'},
 					$shortcut->{'size'},	$shortcut->{'crc'},		$shortcut->{'md5'},
 					$shortcut->{'sha1'},	$shortcut->{'merge'},	$shortcut->{'region'},
 					$shortcut->{'offset'},	$shortcut->{'status'},	yesno2bool($shortcut->{'optional'})
@@ -211,7 +211,7 @@ sub parse_mamelistxml {
 					$shortcut->{'keydelta'},	yesno2bool($shortcut->{'reverse'})
 				) or warn "Can't insert control";
 			} # end each control
-	
+
 
 			$xml->{'dipswitch'} = { $xml->{'dipswitch'}->{'name'} => $xml->{'dipswitch'} } if exists $xml->{'dipswitch'}->{'name'} ; # only one element in this hash
 			foreach my $dipswitch_name (keys %{$xml->{'dipswitch'}}) {
@@ -340,7 +340,7 @@ sub parse_mamelistxml {
 			} # end each device
 
 			printf "\r[%05d] Inserting '%s'                      ", ++$game_done,$xml->{'name'} ;
-			@xml_game = ();			
+			@xml_game = ();
 
 		} else {
 			push(@xml_game, $_) if $in_game; # save the stream for futur parsing
@@ -351,14 +351,128 @@ sub parse_mamelistxml {
 }
 
 
+
+###################################################### MAME -LISTSOFTWARE#######################################
+
+sub parse_mamelistsoftware {
+	if (!-e 'listsoftware.xml') {
+		generate_listsoftware();
+	}
+	print "Parsing 'listsoftware.xml'\n";
+
+	create_table_softwarelist();
+	create_table_software_info();
+
+	my $sth_software= $sqlite->prepare("INSERT INTO softwarelist (name,description) VALUES (?,?)");
+	my $sth_game 	= $sqlite->prepare("INSERT INTO games (name,console,cloneof,description,year,manufacturer) VALUES (?,?,?,?,?,?)");
+	my $sth_rom  	= $sqlite->prepare("INSERT INTO games_rom (game,console,name,size,crc,sha1,status) VALUES (?,?,?,?,?,?,?)");
+	my $sth_info 	= $sqlite->prepare("INSERT INTO software_info (game,console,'type',name,value) VALUES (?,?,?,?,?)");
+
+	my @xml_game;
+	my $in_game			= 0;
+	my $game_done		= 0;
+	my $softwarelist  	= '';
+	my $line_number 	= 0;
+	my %infos			= ();
+	my %features		= ();
+	my @roms			= ();
+
+	open(XML,'<listsoftware.xml') or die "Can't find 'listsoftware.xml' ($!)";
+	while(<XML>) {
+		chomp;
+		$line_number++;
+
+		if 			(/<softwarelist\s+name="(.+?)"\s+description="(.+?)"/) {
+			$softwarelist = $1;
+			$sth_software->execute($softwarelist,$2) or warn "Can't insert softwarelist\n";
+
+		} elsif		(/<software\s+name=/) { # start of xml tag <software>
+			$in_game = 1;
+			push @xml_game, $_;
+
+		} elsif		(/<info\s+name="(.*?)"\s+value="(.*?)"/) { # info or feature
+			$infos{$1} = $2;
+
+		} elsif		(/<feature\s+name="(.+?)"\s+value="(.*?)"/) { # feature
+			$features{$1} = $2;
+		
+		} elsif		(/<rom\s+/) { # rom
+			push @roms, {};
+			while (/(?:([^=\s]+?)="([^"]+?)")/gi) {
+				$roms[$#roms]->{$1} =  $2;
+			}
+
+		} elsif 	(/<\/software>/) { # end of xml tag <software>
+			push @xml_game, $_;
+			$in_game = 0;
+
+			# parse <software> tag
+			my $xml;
+			try {
+				$xml = XMLin(join("\n",@xml_game));
+			};
+
+			printf "\r[%05d] Inserting '%s' from line %d                      ", ++$game_done,$xml->{'name'}, $line_number ;
+
+			# insert game
+			$sth_game->execute(
+				$xml->{'name'},			$softwarelist,
+				$xml->{'cloneof'},		$xml->{'description'},
+				$xml->{'year'},			$xml->{'publisher'}
+			) or warn "Can't insert game ".$xml->{'name'}." / $softwarelist\n";
+
+
+			# insert game info
+			while(my ($info_name,$info_value) = each(%infos)) {
+				$sth_info->execute($xml->{'name'}, $softwarelist, 'info', $info_name, $info_value)
+					or warn "Can't insert game info ".$xml->{'name'}." / $softwarelist / $info_name\n";
+			}
+			$sth_info->execute($xml->{'name'}, $softwarelist, 'info', 'part_name', $xml->{'part'}->{'name'})
+				or warn "Can't insert game info ".$xml->{'name'}." / $softwarelist / part_name\n";
+			$sth_info->execute($xml->{'name'}, $softwarelist, 'info', 'part_interface', $xml->{'part'}->{'interface'})
+				or warn "Can't insert game info ".$xml->{'name'}." / $softwarelist / part_interface\n";
+
+
+			# insert game features
+			while(my ($feature_name,$feature_value) = each(%features)) {
+				$sth_info->execute($xml->{'name'}, $softwarelist, 'feature', $feature_name, $feature_value)
+					or warn "Can't insert game feature ".$xml->{'name'}." / $softwarelist / $feature_name\n";
+			}
+
+			# insert game roms
+			foreach my $rom (@roms) {
+				$rom->{'status'} = 'good' if !exists $rom->{'status'}; # default status
+				if (exists $rom->{'name'}) { #insert only if rom is good
+					$sth_rom->execute(
+						$xml->{'name'}, $softwarelist, $rom->{'name'},
+						$rom->{'size'}, $rom->{'crc'}, $rom->{'sha1'}, $rom->{'status'}
+					) or warn "Can't insert game rom ".$xml->{'name'}." / $softwarelist / ".$rom->{'name'}."\n";
+				}
+			}
+
+			# reset memory
+			@xml_game = %infos = %features = @roms = ();
+
+		} else {
+			push(@xml_game, $_) if $in_game; # save the stream for futur parsing
+		}
+
+	}
+	close XML;
+	print "ok\n";
+}
+
+
+
+
 ###################################################### MAMEINFO ###########################################
 
 sub parse_mameinfo {
-	if (!-e 'mameinfo.dat') {
-		print "'mameinfo.dat' not found\nYou can download it at http://mameinfo.mameworld.info\n";
+	if (!-e 'dats/mameinfo.dat') {
+		print "'dats/mameinfo.dat' not found\nYou can download it at http://mameinfo.mameworld.info\n";
 		return ;
 	}
-	print "Parse 'mameinfo.dat'... ";
+	print "Parse 'dats/mameinfo.dat'... ";
 
 	$sqlite->do("DROP TABLE IF EXISTS 'versions'") or die "Can't drop 'versions' table";
 	my $sql = <<EOT ;
@@ -401,7 +515,7 @@ EOT
 	my (@infos,$rom_name,$rom_type,$romset_size,$romset_file,$romset_zip);
 	my $sth1 = $sqlite->prepare("INSERT INTO versions (version,date_build,games,delta_games,drivers,info) VALUES (?,?,?,?,?,?)");
 	my $sth2 = $sqlite->prepare("INSERT INTO mameinfo (game,info,romset_size,romset_file,romset_zip) VALUES (?,?,?,?,?)");
-	open(MAMEINFO,'<mameinfo.dat') or die "Can't find 'mameinfo.dat' ($!)";
+	open(MAMEINFO,'<dats/mameinfo.dat') or die "Can't find 'dats/mameinfo.dat' ($!)";
 	while(<MAMEINFO>) {
 		chomp;
 		# mame version
@@ -472,11 +586,11 @@ EOT
 ###################################################### HISTORY ###########################################
 
 sub parse_history {
-	if (!-e 'history.dat') {
-		print "'history.dat' not found\nYou can download it at http://www.arcade-history.com/index.php?page=download\n";
+	if (!-e 'dats/history.dat') {
+		print "'dats/history.dat' not found\nYou can download it at http://www.arcade-history.com/index.php?page=download\n";
 		return ;
 	}
-	print "Parse 'history.dat'... ";
+	print "Parse 'dats/history.dat'... ";
 
 	$sqlite->do("DROP TABLE IF EXISTS 'histories'") or die "Can't drop 'histories' table";
 	my $sql = <<EOT ;
@@ -504,7 +618,7 @@ EOT
 	my (@infos);
 	my $sth1 = $sqlite->prepare("INSERT INTO histories (id,history,link) VALUES (?,?,?)");
 	my $sth2 = $sqlite->prepare("INSERT INTO games_histories (game,history_id) VALUES (?,?)");
-	open(HISTORY,'<history.dat') or die "Can't find 'history.dat' ($!)";
+	open(HISTORY,'<dats/history.dat') or die "Can't find 'dats/history.dat' ($!)";
 	while(<HISTORY>) {
 		chomp;
 		if		(/^(?:\#|\$<a href=\"(.+?)\")/) {	# link to history web page
@@ -541,11 +655,11 @@ EOT
 ###################################################### NPLAYERS ###########################################
 
 sub parse_nplayers {
-	if (!-e 'nplayers.ini') {
-		print "'nplayers.ini' not found\nYou can download it at http://nplayers.arcadebelgium.be\n";
+	if (!-e 'folders/nplayers.ini') {
+		print "'folders/nplayers.ini' not found\nYou can download it at http://nplayers.arcadebelgium.be\n";
 		return ;
 	}
-	print "Parse 'nplayers.ini'... ";
+	print "Parse 'folders/nplayers.ini'... ";
 
 	$sqlite->do("DROP TABLE IF EXISTS 'nplayers'") or die "Can't drop 'nplayers' table";
 	my $sql = <<EOT ;
@@ -558,7 +672,7 @@ EOT
 	$sqlite->do($sql) or die "Can't create 'nplayers' table";
 
 	my $sth = $sqlite->prepare("INSERT INTO nplayers (game,players) VALUES (?,?)");
-	open(NPLAYERS,'<nplayers.ini') or die "Can't find 'nplayers.ini' ($!)";
+	open(NPLAYERS,'<folders/nplayers.ini') or die "Can't find 'folders/nplayers.ini' ($!)";
 	while(<NPLAYERS>) {
 		chomp;
 		if (/^\s*(.*?)\s*=\s*(.*?)\s*$/) {		# example : 88games=4P alt / 2P sim
@@ -579,11 +693,11 @@ EOT
 ###################################################### STORY ###########################################
 
 sub parse_story {
-	if (!-e 'story.dat') {
-		print "'story.dat' not found\nYou can download it at http://www.arcadehits.net/mamescore/home.php?show=files\n";
+	if (!-e 'dats/story.dat') {
+		print "'dats/story.dat' not found\nYou can download it at http://www.arcadehits.net/mamescore/home.php?show=files\n";
 		return ;
 	}
-	print "Parse 'story.dat'... ";
+	print "Parse 'dats/story.dat'... ";
 
 	$sqlite->do("DROP TABLE IF EXISTS 'stories'") or die "Can't drop 'stories' table";
 	my $sql = <<EOT ;
@@ -598,7 +712,7 @@ EOT
 	my $rom_name ;
 	my @score;
 	my $sth = $sqlite->prepare("INSERT INTO stories (game,score) VALUES (?,?)");
-	open(STORY,'<story.dat') or die "Can't find 'story.dat' ($!)";
+	open(STORY,'<dats/story.dat') or die "Can't find 'dats/story.dat' ($!)";
 	while(<STORY>) {
 		chomp;
 
@@ -839,11 +953,11 @@ EOT
 ###################################################### COMMAND ###########################################
 
 sub parse_command {
-	if (!-e 'command.dat') {
-		print "'command.dat' not found\nYou can download it at http://mamecommand.blogfatal.com/\n";
+	if (!-e 'dats/command.dat') {
+		print "'dats/command.dat' not found\nYou can download it at http://mamecommand.blogfatal.com/\n";
 		return ;
 	}
-	print "Parse 'command.dat'... ";
+	print "Parse 'dats/command.dat'... ";
 
 	$sqlite->do("DROP TABLE IF EXISTS 'command'") or die "Can't drop 'command' table";
 	my $sql = <<EOT ;
@@ -871,7 +985,7 @@ EOT
 	my $i = 1 ;
 	my $sth1 = $sqlite->prepare("INSERT INTO command (id,command) VALUES (?,?)");
 	my $sth2 = $sqlite->prepare("INSERT INTO games_command (game,command_id) VALUES (?,?)");
-	open(COMMAND,'<command.dat') or die "Can't find 'command.dat' ($!)";
+	open(COMMAND,'<dats/command.dat') or die "Can't find 'dats/command.dat' ($!)";
 	while(<COMMAND>) {
 		chomp;
 		if (/^\s*#/) { # skip comments
@@ -1116,6 +1230,7 @@ sub create_table_games {
 	my $sql = <<EOT ;
 CREATE TABLE IF NOT EXISTS 'games'	(
 	'name'					VARCHAR NOT NULL,
+	'console'					VARCHAR NOT NULL,
 	'sourcefile'			VARCHAR,
 	'isbios'				BOOL	DEFAULT 0,
 	'runnable'				BOOL	DEFAULT 1,
@@ -1139,7 +1254,7 @@ CREATE TABLE IF NOT EXISTS 'games'	(
 	'driver_cocktail'		VARCHAR,
 	'driver_protection'		VARCHAR,
 	'driver_savestate'		BOOL,
-	PRIMARY KEY (name)
+	PRIMARY KEY (name,console)
 );
 EOT
 	$sqlite->do($sql) or die "Can't create 'games' table";
@@ -1172,6 +1287,36 @@ EOT
 }
 
 
+sub create_table_softwarelist {
+	$sqlite->do("DROP TABLE IF EXISTS 'softwarelist'") or die "Can't drop 'softwarelist' table";
+	my $sql = <<EOT ;
+CREATE TABLE IF NOT EXISTS 'softwarelist'	(
+	'name'				VARCHAR NOT NULL,
+	'description'		VARCAHR NOT NULL,
+	PRIMARY KEY (name)
+);
+EOT
+	$sqlite->do($sql) or die "Can't create 'softwarelist' table";
+}
+
+
+sub create_table_software_info {
+	$sqlite->do("DROP TABLE IF EXISTS 'software_info'") or die "Can't drop 'software_info' table";
+	my $sql = <<EOT ;
+CREATE TABLE IF NOT EXISTS 'software_info'	(
+	'game'				VARCHAR NOT NULL,
+	'console'			VARCAHR NOT NULL,
+	'type'				VARCHAR NOT NULL,
+	'name'				VARCHAR NOT NULL,
+	'value'				VARCHAR,
+	
+	PRIMARY KEY (game,console,type,name)
+);
+EOT
+	$sqlite->do($sql) or die "Can't create 'software_info' table";
+}
+
+
 sub create_table_games_biosset {
 	$sqlite->do("DROP TABLE IF EXISTS 'games_biosset'") or die "Can't drop 'games_biosset' table";
 	my $sql = <<EOT ;
@@ -1180,8 +1325,7 @@ CREATE TABLE IF NOT EXISTS 'games_biosset'	(
 	'name'					VARCHAR NOT NULL,
 	'description'			VARCHAR,
 	'default'				BOOL DEFAULT 0,
-	PRIMARY KEY (game,name),
-	FOREIGN KEY (game) REFERENCES games(name)
+	PRIMARY KEY (game,name)
 );
 EOT
 	$sqlite->do($sql) or die "Can't create 'games_biosset' table";
@@ -1193,6 +1337,7 @@ sub create_table_games_rom {
 	my $sql = <<EOT ;
 CREATE TABLE IF NOT EXISTS 'games_rom'	(
 	'game'					VARCHAR NOT NULL,
+	'console'				VARCHAR NOT NULL,
 	'name'					VARCHAR NOT NULL,
 	'bios'					VARCHAR,
 	'size'					INTEGER,
@@ -1204,8 +1349,7 @@ CREATE TABLE IF NOT EXISTS 'games_rom'	(
 	'offset'				INTEGER,
 	'status'				VARCHAR DEFAULT 'good',
 	'optional'				BOOL	DEFAULT 0,
-	PRIMARY KEY (game,name),
-	FOREIGN KEY (game) REFERENCES games(name)
+	PRIMARY KEY (game,console,name)
 );
 EOT
 	$sqlite->do($sql) or die "Can't create 'games_rom' table";
@@ -1243,8 +1387,7 @@ CREATE TABLE IF NOT EXISTS 'games_disk'	(
 	'index'					INTEGER,
 	'status'				VARCHAR DEFAULT 'good',
 	'optional'				BOOL	DEFAULT 0,
-	PRIMARY KEY (game,name),
-	FOREIGN KEY (game) REFERENCES games(name)
+	PRIMARY KEY (game,name)
 );
 EOT
 	$sqlite->do($sql) or die "Can't create 'games_disk' table";
@@ -1275,8 +1418,7 @@ sub create_table_games_sample {
 CREATE TABLE IF NOT EXISTS 'games_sample'	(
 	'game'					VARCHAR NOT NULL,
 	'name'					VARCHAR NOT NULL,
-	PRIMARY KEY (game,name),
-	FOREIGN KEY (game) REFERENCES games(name)
+	PRIMARY KEY (game,name)
 );
 EOT
 	$sqlite->do($sql) or die "Can't create 'games_sample' table";
@@ -1293,8 +1435,7 @@ CREATE TABLE IF NOT EXISTS 'games_chip'	(
 	'tag'					VARCHAR,
 	'type'					VARCHAR,
 	'clock'					INTEGER,
-	PRIMARY KEY (game,name),
-	FOREIGN KEY (game) REFERENCES games(name)
+	PRIMARY KEY (game,name)
 );
 EOT
 	$sqlite->do($sql) or die "Can't create 'games_chip' table";
@@ -1337,8 +1478,7 @@ CREATE TABLE IF NOT EXISTS 'games_display'	(
 	'hbstart'				INTEGER,
 	'vtotal'				INTEGER,
 	'vbend'					INTEGER,
-	'vbstart'				INTEGER,
-	FOREIGN KEY (game) REFERENCES games(name)
+	'vbstart'				INTEGER
 );
 EOT
 	$sqlite->do($sql) or die "Can't create 'games_display' table";
@@ -1376,8 +1516,7 @@ CREATE TABLE IF NOT EXISTS 'games_control'	(
 	'sensitivity'			INTEGER,
 	'keydelta'				INTEGER,
 	'reverse'				BOOL,
-	PRIMARY KEY (game,type),
-	FOREIGN KEY (game) REFERENCES games(name)
+	PRIMARY KEY (game,type)
 );
 EOT
 	$sqlite->do($sql) or die "Can't create 'games_control' table";
@@ -1394,8 +1533,7 @@ CREATE TABLE IF NOT EXISTS 'games_dipswitch'	(
 	'tag'					VARCHAR,
 	'mask'					INTEGER,
 	PRIMARY KEY (id),
-	UNIQUE (game,name),
-	FOREIGN KEY (game) REFERENCES games(name)
+	UNIQUE (game,name)
 );
 EOT
 	$sqlite->do($sql) or die "Can't create 'games_dipswitch' table";
@@ -1407,8 +1545,7 @@ CREATE TABLE IF NOT EXISTS 'games_dipswitch_dipvalue'	(
 	'name'					VARCHAR NOT NULL,
 	'value'					INTEGER,
 	'default'				BOOL,
-	PRIMARY KEY (dipswitch_id,name),
-	FOREIGN KEY (dipswitch_id) REFERENCES games_dipswitch(id)
+	PRIMARY KEY (dipswitch_id,name)
 );
 EOT
 	$sqlite->do($sql) or die "Can't create 'games_dipswitch_dipvalue' table";
@@ -1422,8 +1559,7 @@ CREATE TABLE IF NOT EXISTS 'games_adjuster'	(
 	'game'					VARCHAR NOT NULL,
 	'name'					VARCHAR NOT NULL,
 	'default'				INTEGER,
-	PRIMARY KEY (game,name),
-	FOREIGN KEY (game) REFERENCES games(name)
+	PRIMARY KEY (game,name)
 );
 EOT
 	$sqlite->do($sql) or die "Can't create 'games_adjuster' table";
@@ -1436,8 +1572,7 @@ CREATE TABLE IF NOT EXISTS 'games_softwarelist'	(
 	'game'					VARCHAR NOT NULL,
 	'name'					VARCHAR NOT NULL,
 	'status'				VARCHAR,
-	PRIMARY KEY (game,name),
-	FOREIGN KEY (game) REFERENCES games(name)
+	PRIMARY KEY (game,name)
 );
 EOT
 	$sqlite->do($sql) or die "Can't create 'games_softwarelist' table";
@@ -1468,8 +1603,7 @@ CREATE TABLE IF NOT EXISTS 'games_ramoption'	(
 	'game'					VARCHAR NOT NULL,	
 	'value'					INTEGER,
 	'default'				INTEGER,
-	PRIMARY KEY (game,value),
-	FOREIGN KEY (game) REFERENCES games(name)
+	PRIMARY KEY (game,value)
 );
 EOT
 	$sqlite->do($sql) or die "Can't create 'games_ramoption' table";
@@ -1486,8 +1620,7 @@ CREATE TABLE IF NOT EXISTS 'games_configuration'	(
 	'tag'					TEXT,
 	'mask'					INTEGER,
 	PRIMARY KEY (id),
-	UNIQUE		(game,name),
-	FOREIGN KEY (game) REFERENCES games(name)
+	UNIQUE		(game,name)
 );
 EOT
 	$sqlite->do($sql) or die "Can't create 'games_configuration' table";
@@ -1514,8 +1647,7 @@ CREATE TABLE IF NOT EXISTS 'games_category'	(
 	'game'					VARCHAR NOT NULL,	
 	'name'					TEXT,
 	PRIMARY KEY (id),
-	UNIQUE		(game,name),
-	FOREIGN KEY (game) REFERENCES games(name)
+	UNIQUE		(game,name)
 );
 EOT
 	$sqlite->do($sql) or die "Can't create 'games_category' table";
@@ -1544,8 +1676,7 @@ CREATE TABLE IF NOT EXISTS 'games_device'	(
 	'mandatory'				INTEGER,
 	'interface'				TEXT,
 	PRIMARY KEY (id),
-	UNIQUE		(game,type,tag),
-	FOREIGN KEY (game) REFERENCES games(name)
+	UNIQUE		(game,type,tag)
 );
 EOT
 	$sqlite->do($sql) or die "Can't create 'games_device' table";
@@ -1582,37 +1713,64 @@ sub generate_mamexml {
 	my $input = <>;
 	chomp;
 	if ($input =~ /Y(:?ES)?/i) {
-		my $mame_exe = '';
-		if ($running_on_windows) {
-			if (-e 'mame.exe') {
-				$mame_exe = 'mame.exe';
-			} elsif (-e 'mame32.exe') {
-				$mame_exe = 'mame32.exe';
-			} elsif (-e 'mame64.exe') {
-				$mame_exe = 'mame64.exe';
-			}
-		} else {
-			if (-e 'mame') {
-				$mame_exe = './mame';
-			} elsif (-e 'mame32') {
-				$mame_exe = './mame32';
-			} elsif (-e 'mame64.exe') {
-				$mame_exe = './mame64';
-			}
-		}
-
+		my $mame_exe = get_mame_executable() || die "Error. I can't continue. Bye.";;
+		
 		print "Please wait while generating $mame_exe -listxml > mame.xml ... ";
 		`$mame_exe -listxml > mame.xml`;
 		if (-e 'mame.xml') {
 			print "ok\n";
 		} else {
-			print "error\n";
-			print "I can't continue. Bye."; exit;
+			die "Error. I can't continue. Bye.";
 		}
 
 	} else {
-		print "I can't continue. Bye."; exit;
+		die "I can't continue. Bye.";
 	}
+}
+
+
+sub generate_listsoftware {
+	print "listsoftware.xml not found\n";		
+	print "Would you like to I generate it for you ? (YES/no) : ";
+	my $input = <>;
+	chomp;
+	if ($input =~ /Y(:?ES)?/i) {
+		my $mame_exe = get_mame_executable() || die "Error. I can't continue. Bye.";
+
+		print "Please wait while generating $mame_exe -listsoftware > listsoftware.xml ... ";
+		`$mame_exe -listsoftware > listsoftware.xml`;
+		if (-e 'listsoftware.xml') {
+			print "ok\n";
+		} else {
+			die "Error. I can't continue. Bye.";
+		}
+
+	} else {
+		die "I can't continue. Bye.";
+	}
+}
+
+
+sub get_mame_executable {
+	my $mame_exe = '';
+	if ($running_on_windows) {
+		if (-e 'mame.exe') {
+			$mame_exe = 'mame.exe';
+		} elsif (-e 'mame32.exe') {
+			$mame_exe = 'mame32.exe';
+		} elsif (-e 'mame64.exe') {
+			$mame_exe = 'mame64.exe';
+		}
+	} else {
+		if (-e 'mame') {
+			$mame_exe = './mame';
+		} elsif (-e 'mame32') {
+			$mame_exe = './mame32';
+		} elsif (-e 'mame64.exe') {
+			$mame_exe = './mame64';
+		}
+	}
+	return $mame_exe;
 }
 
 

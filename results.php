@@ -6,7 +6,7 @@ $database = load_database();
 ?><html>
 <head>
 <title>Search results MAME games</title>
-<meta http-equiv="Content-Type" content="text/html; charset=iso8859-1">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link rel="stylesheet" href="css/font-awesome.min.css">
 <link rel="stylesheet" href="css/bootstrap.css">
@@ -28,8 +28,8 @@ $database = load_database();
 <!-- RESULT LIST -->
 <?php
 	// build SQL request	
-	$tables = array('games');
-	$fields = array('games.*');
+	$tables = array('games LEFT JOIN softwarelist ON games.console=softwarelist.name');
+	$fields = array('games.*, softwarelist.description as softwarelist_description');
 
 	$where = array();
 
@@ -102,6 +102,10 @@ $database = load_database();
 		array_push($where,"genre.genre = '".sqlite_escape_string($_SESSION['genre'])."'");
 	}
 
+	// console
+	if (strlen($_SESSION['console'])>0)
+		array_push($where,"games.console='".sqlite_escape_string($_SESSION['console'])."'");
+
 	// only runnables
 	array_push($where,"games.runnable = '1'");
 
@@ -139,6 +143,8 @@ EOT;
 	$row_count = $row_count['nb_rows'];
 	$lastpage  = ceil($row_count / $_SESSION['limit']);
 
+	//echo "<pre>$sql</pre>";
+
 	$res  = $database->query($sql) or die("Unable to query2 ($sql) database : ".array_pop($database->errorInfo()));
 	$rows = $res->fetchAll();
 
@@ -148,7 +154,7 @@ EOT;
 		<script type="text/javascript">
 		$(document).ready(function(){
 			// redirect to rom page
-			document.location.href='index.php?name=<?=$row['name']?>';
+			goToGame('<?=$row['name']?>','<?=$row['console']?>');
 		});
 		</script>
 <?php } ?>
@@ -159,6 +165,7 @@ EOT;
 		<th class="name">Name</th>
 		<th class="description">Description</th>
 		<th class="year">Year</th>
+		<th class="system">System</th>
 		<th class="manufacturer">Manufacturer</th>
 		<th class="cloneof">Clone of</th>
 	</tr>
@@ -166,15 +173,22 @@ EOT;
 <?php	// search for roms
 	
 	foreach ($rows as $row) { ?>
-		<tr onclick="goToGame('<?=$row['name']?>')">
+		<tr onclick="goToGame('<?=$row['name']?>','<?=$row['console']?>')">
 			<td class="icon"><!-- icon -->
-				<?php	if (file_exists(MEDIA_PATH."/icons/$row[name].ico")) { ?>
-							<img src="<?=MEDIA_PATH?>/icons/<?=$row['name']?>.ico" class="icon"/>
-				<?php	} ?>
+<?php			if ($row['console']=='arcade' && file_exists(MEDIA_PATH."/icons/$row[name].ico")) { ?>
+					<img src="<?=MEDIA_PATH?>/icons/<?=$row['name']?>.ico" class="icon"/>
+<?php			} ?>
 			</td>
 			<td class="name"><?=$row['name']?></td>
 			<td class="description"><?=$row['description']?></td>
 			<td class="year"><?=$row['year']?></td>
+			<td class="system" title="<?=$row['softwarelist_description']?>">
+<?php			if (file_exists("images/consoles/$row[console].png")) { ?>
+					<img class="console-icon" src="images/consoles/<?=$row['console']?>.png"/>
+<?php			} else { ?>
+					<?=$row['console']?>
+<?php 			} ?>
+			</td>
 			<td class="manufacturer"><?=$row['manufacturer']?></td>
 			<td class="cloneof"><?=$row['cloneof']?></td>
 		</tr>

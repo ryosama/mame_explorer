@@ -47,6 +47,7 @@ $(document).ready(function() {
 	// adaptive table on mobile
 	$('#display_info table').stacktable();
 	$('#input_info table').stacktable();
+	$('#control_info table').stacktable();
 	$('#rom_info table').stacktable();
 	$('#chip_info table').stacktable();
 	$('#adjuster_info table').stacktable();
@@ -58,8 +59,8 @@ $(document).ready(function() {
 
 
 // change URL to direclty go to a game
-function goToGame(game) {
-	document.location.href='index.php?name='+game;
+function goToGame(game,console) {
+	document.location.href='index.php?name='+escape(game)+'&console='+escape(console);
 }
 
 // change result page

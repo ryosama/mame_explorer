@@ -87,6 +87,11 @@ div.pagination a {
 	cursor:pointer;
 }
 
+/* result */
+.system {
+	text-align: center;
+}
+
 /* from games */
 
 h2 {
@@ -109,6 +114,10 @@ h2 a {
 #download {
 	margin-bottom:10px;
 	text-align:center;
+}
+
+.console-icon {
+	vertical-align: middle;
 }
 
 .infos {

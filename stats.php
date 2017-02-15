@@ -7,7 +7,7 @@ $database = load_database();
 ?><html>
 <head>
 <title>Mame explorer - statistics</title>
-<meta http-equiv="Content-Type" content="text/html; charset=iso8859-1">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link rel="stylesheet" href="css/font-awesome.min.css">
 <link rel="stylesheet" href="css/bootstrap.css">
@@ -31,6 +31,8 @@ $database = load_database();
 	$sql = <<<EOT
 SELECT
 	(SELECT count(*) FROM games) as total_games,
+	(SELECT count(*) FROM games WHERE console='arcade') as arcade_games,
+	(SELECT count(*) FROM games WHERE console<>'arcade') as console_games,
 	(SELECT count(*) FROM games WHERE cloneof IS NULL) as parent_games,
 	(SELECT count(*) FROM games WHERE cloneof IS NOT NULL) as clone_games
 EOT;
@@ -55,6 +57,8 @@ EOT;
 	<table class="stats">
 		<tr><th>Database size</th><td><?=HumanReadableFilesize(filesize(DATABASE_FILENAME))?></td></tr>
 		<tr><th>Total games</th><td><?=$row_games['total_games']?></td></tr>
+		<tr><th>Arcade</th><td><?=$row_games['arcade_games']?></td></tr>
+		<tr><th>Console</th><td><?=$row_games['console_games']?></td></tr>
 		<tr><th>Parents</th><td><?=$row_games['parent_games']?></td></tr>
 		<tr><th>Clones</th><td><?=$row_games['clone_games']?></td></tr>
 		<tr><th>Average clones/game</th><td><?=sprintf('%0.2f',$row_games['clone_games'] / $row_games['parent_games'])?></td></tr>
@@ -87,6 +91,9 @@ FROM
 	games
 WHERE
 		manufacturer IS NOT NULL
+	AND manufacturer <> '<unknown>'
+	AND manufacturer <> '<doujin>'
+	AND manufacturer <> '<tape2disk hack>'
 	AND cloneof IS NULL
 GROUP BY	manufacturer
 ORDER BY 	nb_game DESC
@@ -168,14 +175,15 @@ EOT;
 	$sql = <<<EOT
 SELECT
 	count(*) as nb_roms,
-	description
+	G.description,
+	GR.console
 FROM
 	games_rom GR
 	LEFT JOIN games G
-		ON GR.game=G.name
+		ON GR.game=G.name AND GR.console=G.console
 WHERE
 		G.cloneof IS NULL
-GROUP BY 	GR.game
+GROUP BY 	GR.game, GR.console
 ORDER BY 	nb_roms DESC
 LIMIT 		0,10
 EOT;
@@ -189,12 +197,55 @@ EOT;
 		<tr><th>Top 10 games with more ROMS</th><th>ROMS</th></tr>
 		<?php while($row_best_roms = $res->fetch(PDO::FETCH_ASSOC)) { ?>
 				<tr>
-					<td><?=$row_best_roms['description']?></td>
+					<td><?=htmlentities($row_best_roms['description'])?> / <?=htmlentities($row_best_roms['console'])?></td>
 					<td><?=$row_best_roms['nb_roms']?></td>
 				</tr>
 		<? } ?>
 	</table>
 </div>
+
+
+
+<!-- CONSOLE STATS -->
+<div id="console_stats" class="infos">
+<h2><a name="console_info">System stats</a></h2>
+<?php
+	$sql = <<<EOT
+SELECT count(DISTINCT(console)) as total_console FROM games
+EOT;
+	$res = $database->query($sql) or die("Unable to query database : ".array_pop($database->errorInfo())."<br/>$sql"); 
+	$row_console = $res->fetch(PDO::FETCH_ASSOC);
+
+	$sql = <<<EOT
+SELECT
+	count(*) as nb_games,
+	SL.description,
+	G.console
+FROM
+	games G
+	LEFT JOIN softwarelist SL
+		ON G.console=SL.name
+WHERE
+	G.cloneof IS NULL
+GROUP BY 	G.console
+ORDER BY 	nb_games DESC
+LIMIT 		0,10
+EOT;
+	$res = $database->query($sql) or die("Unable to query database : ".array_pop($database->errorInfo())."<br/>$sql"); 
+?>
+	<table class="stats">
+		<tr><th>Total system</th><td><?=$row_console['total_console']?></td></tr>
+		<tr><th>Average games/system</th><td><?=sprintf('%0.2f', $row_games['parent_games'] / $row_console['total_console'])?></td></tr>
+		<tr><th>Top 10 systems with more games</th><th>Games</th></tr>
+		<?php while($row_best_console = $res->fetch(PDO::FETCH_ASSOC)) { ?>
+				<tr>
+					<td><?=htmlentities(strlen($row_best_console['description'])>0 ? $row_best_console['description'] : 'Arcade')?></td>
+					<td><?=$row_best_console['nb_games']?></td>
+				</tr>
+		<? } ?>
+	</table>
+</div>
+
 
 <?php include_once('footer.php'); ?>
 
