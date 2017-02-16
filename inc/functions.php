@@ -55,7 +55,8 @@ function game_has_info($game,$game_type) {
 
 	foreach ($informations as $table) {
 		$has_info[$table] = '';
-		if ($res = $database->query("SELECT count(*) as has_info FROM $table WHERE game='".sqlite_escape_string($game)."'")) {
+		$res = $database->prepare("SELECT count(*) as has_info FROM $table WHERE game=?");
+		if ($res->execute(array($game))) {
 			$row = $res->fetch(PDO::FETCH_ASSOC);
 			$has_info[$table] = $row['has_info'];
 		}
@@ -75,7 +76,7 @@ function reset_session_except() {
 }
 
 
-
+/*
 if (!function_exists('sqlite_escape_string')) {
 	function sqlite_escape_string($string) {
 		$string = str_replace("'", "''", $string);
@@ -84,7 +85,7 @@ if (!function_exists('sqlite_escape_string')) {
 		return $string;
 	}
 }
-
+*/
 
 /**
  * Returns a human readable filesize

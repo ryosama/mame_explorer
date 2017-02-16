@@ -10,9 +10,10 @@ if (	isset($_GET['what']) && $_GET['what']=='get_manufacturer'
 	&& 	isset($_GET['val']) && strlen($_GET['val'])>0) {
 	$results = array();
 
-	$sql = "SELECT DISTINCT(manufacturer) as manufacturer FROM games WHERE manufacturer like '%".sqlite_escape_string($_GET['val'])."%' AND manufacturer IS NOT NULL AND manufacturer<>'' and manufacturer NOT LIKE '<%>' ORDER BY manufacturer ASC";
+	$sql = "SELECT DISTINCT(manufacturer) as manufacturer FROM games WHERE manufacturer like ? AND manufacturer IS NOT NULL AND manufacturer<>'' and manufacturer NOT LIKE '<%>' ORDER BY manufacturer ASC";
 
-	$res = $database->query($sql) or die("Unable to select manufacturer : ".array_pop($database->errorInfo()));
+	$res = $database->prepare($sql);
+	$res->execute(array('%'.$_GET['val'].'%')) or die("Unable to select manufacturer : ".array_pop($database->errorInfo()));
 	while($row = $res->fetch(PDO::FETCH_ASSOC))
 		$results[] = $row['manufacturer'];
 
