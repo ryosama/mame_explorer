@@ -37,7 +37,6 @@ function bool2yesno($bool) {
 function game_has_info($game,$game_type) {
 	global $database;
 	$has_info = array(
-		'sound'=>'','driver'=>'','input'=>'',
 		'games_configuration'=>'','games_control'=>'','games_display'=>'','games_dipswitch'=>'','games_adjuster'=>'',
 		'games_rom'=>'','games_biosset'=>'','games_chip'=>'','games_sample'=>'','games_disk'=>'','games_series'=>'','categories'=>'',
 		'mameinfo'=>'','games_histories'=>'','games_command'=>'','cheats'=>'','stories'=>''
@@ -75,17 +74,6 @@ function reset_session_except() {
     }
 }
 
-
-/*
-if (!function_exists('sqlite_escape_string')) {
-	function sqlite_escape_string($string) {
-		$string = str_replace("'", "''", $string);
-		$string = str_replace("?", "\?", $string);
-		$string = str_replace("%", "\%", $string);
-		return $string;
-	}
-}
-*/
 
 /**
  * Returns a human readable filesize

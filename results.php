@@ -198,32 +198,37 @@ EOT;
 		<th class="name">Name</th>
 		<th class="description">Description</th>
 		<th class="year">Year</th>
-		<th class="system">System</th>
+		<th class="console">System</th>
 		<th class="manufacturer">Manufacturer</th>
 		<th class="cloneof">Clone of</th>
 	</tr>
 
-<?php	// search for roms
-	
-	foreach ($rows as $row) { ?>
-		<tr onclick="goToGame('<?=$row['name']?>','<?=$row['console']?>')">
+<?php	// display each roms
+	foreach ($rows as $row) {
+		$lien = 'index.php?name='.urlencode($row['name']).'&console='.urlencode($row['console']);
+?>
+		<tr>
 			<td class="icon"><!-- icon -->
+				<a href="<?=$lien?>">
 <?php			if ($row['console']=='arcade' && file_exists(MEDIA_PATH."/icons/$row[name].ico")) { ?>
 					<img src="<?=MEDIA_PATH?>/icons/<?=$row['name']?>.ico" class="icon"/>
 <?php			} ?>
+				</a>
 			</td>
-			<td class="name"><?=$row['name']?></td>
-			<td class="description"><?=$row['description']?></td>
-			<td class="year"><?=$row['year']?></td>
-			<td class="system" title="<?=$row['softwarelist_description']?>">
+			<td class="name"><a href="<?=$lien?>"><?=$row['name']?></a></td>
+			<td class="description"><a href="<?=$lien?>"><?=$row['description']?></a></td>
+			<td class="year"><a href="<?=$lien?>"><?=$row['year']?></a></td>
+			<td class="console" title="<?=$row['softwarelist_description']?>">
+				<a href="<?=$lien?>">
 <?php			if (file_exists("images/consoles/$row[console].png")) { ?>
 					<img class="console-icon" src="images/consoles/<?=$row['console']?>.png"/>
 <?php			} else { ?>
 					<?=$row['console']?>
 <?php 			} ?>
+				</a>
 			</td>
-			<td class="manufacturer"><?=$row['manufacturer']?></td>
-			<td class="cloneof"><?=$row['cloneof']?></td>
+			<td class="manufacturer"><a href="<?=$lien?>"><?=$row['manufacturer']?></a></td>
+			<td class="cloneof"><a href="<?=$lien?>"><?=$row['cloneof']?></a></td>
 		</tr>
 <?php } // end while for each rom ?>
 </table>

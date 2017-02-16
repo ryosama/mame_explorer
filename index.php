@@ -412,7 +412,7 @@ if ($add_in_mame <= 0.161) { // archives.org stop at v0.161 ?>
 
 
 <!-- SOUND INFO -->
-<?php if ($arcade_game && $has_info['sound']) { ?>
+<?php if ($arcade_game) { ?>
 <div id="sound_info" class="infos">
 <h2><a name="sound_info">Sound infos</a></h2>
 <?php
@@ -435,7 +435,7 @@ if ($add_in_mame <= 0.161) { // archives.org stop at v0.161 ?>
 
 
 <!-- DRIVERS INFO -->
-<?php if ($arcade_game && $has_info['driver']) { ?>
+<?php if ($arcade_game) { ?>
 <div id="driver_info" class="infos">
 <h2><a name="driver_info">Driver infos</a></h2>
 <?php 	$fields = array('driver_status'=>'VARCHAR','driver_emulation'=>'VARCHAR','driver_color'=>'VARCHAR','driver_sound'=>'VARCHAR','driver_graphic'=>'VARCHAR','driver_cocktail'=>'VARCHAR','driver_protection'=>'VARCHAR','driver_savestate'=>'BOOL');
@@ -454,7 +454,7 @@ if ($add_in_mame <= 0.161) { // archives.org stop at v0.161 ?>
 
 
 <!-- INPUT INFO -->
-<?php if ($arcade_game && $has_info['input']) { ?>
+<?php if ($arcade_game) { ?>
 <div id="input_info" class="infos">
 <h2><a name="input_info">Inputs infos</a></h2>
 <?php	$fields = array('input_service'=>'BOOL','input_tilt'=>'BOOL','input_players'=>'INTEGER','input_buttons'=>'INTEGER','input_coins'=>'INTEGER');

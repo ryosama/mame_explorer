@@ -3,9 +3,8 @@ var timer;
 // when everything is ready
 $(document).ready(function() {
 	// click on media and display lightbox
-	$(function() {
+	if ($('#snapshot a').length)
 		$('#snapshot a').lightBox({fixedNavigation:true});
-	});
 
 	// search
 	$('#submit-search').on('click', function(e){
@@ -44,16 +43,53 @@ $(document).ready(function() {
 		$('#suggest-manufacturer').slideUp('fast');
 	});
 
+
+	// click on tablea result header
+	$('#results th.name, #results th.description, #results th.year, #results th.console, #results th.manufacturer').click(function(){
+		var current_order = $('#order_by').val();
+		var current_reverse = $('#reverse_order').is(':checked');
+		var new_order = $(this).attr('class');
+
+		if ($(this).attr('class') == current_order) { // keep same order but reverse it
+			$('#reverse_order').prop( 'checked', !current_reverse );
+
+		} else { // change order and reset order to ASC
+			$('#order_by').val(new_order);
+			$('#reverse_order').prop( 'checked', false ); // reset reverse checkbox
+		}
+
+		// send new search
+		$('#submit-search').click();
+	});
+
+
 	// adaptive table on mobile
-	$('#display_info table').stacktable();
-	$('#input_info table').stacktable();
-	$('#control_info table').stacktable();
-	$('#rom_info table').stacktable();
-	$('#chip_info table').stacktable();
-	$('#adjuster_info table').stacktable();
-	$('#biosset_list table').stacktable();
-	$('#sample_info table').stacktable();
-	$('#disk_info table').stacktable();
+	if ($('#display_info table').length)
+		$('#display_info table').stacktable();
+
+	if ($('#input_info table').length)
+		$('#input_info table').stacktable();
+
+	if ($('#control_info table').length)
+		$('#control_info table').stacktable();
+
+	if ($('#rom_info table').length)
+		$('#rom_info table').stacktable();
+
+	if ($('#chip_info table').length)
+		$('#chip_info table').stacktable();
+
+	if ($('#adjuster_info table').length)
+		$('#adjuster_info table').stacktable();
+
+	if ($('#biosset_list table').length)
+		$('#biosset_list table').stacktable();
+
+	if ($('#sample_info table').length)
+		$('#sample_info table').stacktable();
+
+	if ($('#disk_info table').length)
+		$('#disk_info table').stacktable();
 
 }); // end on ready
 
