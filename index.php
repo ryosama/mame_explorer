@@ -20,9 +20,6 @@ if (isset($_GET['name']) && strlen($_GET['name'])>0) { // a game is specify
 	$game_console 	= $row['console'];
 }	
 
-//$game_name_escape = sqlite_escape_string($game_name);
-//$game_console_escape = sqlite_escape_string($game_console);
-
 // extract info about the game
 $sql = <<<EOT
 SELECT 	
@@ -42,7 +39,8 @@ $res->execute(array($game_name,$game_console)) or die("Unable to query database 
 
 $row_game = $res->fetch(PDO::FETCH_ASSOC);
 
-$arcade_game = $row_game['console'] == 'arcade' ? true :false;
+$arcade_game 			= $row_game['console'] == 'arcade' ? true :false;
+$sufix_media_directory 	= $arcade_game ? '':'_SL/'.$row_game['console'];
 
 // get some clone info to display menu
 $cloneof = '';
@@ -119,6 +117,10 @@ $(document).ready(function() {
 ?>
 
 <?php include_once('search_bar.php'); ?>
+
+<?php if (file_exists(MEDIA_PATH."/titles$sufix_media_directory/$game_name.png")) { ?>
+	<div id="fake-background" style="background-image:url(<?=MEDIA_PATH."/titles$sufix_media_directory/$game_name.png"?>) ;"></div>
+<?php } ?>
 
 <h1>
 	<?php	if ($arcade_game && file_exists(MEDIA_PATH."/icons/$game_name.ico")) { ?>
@@ -226,8 +228,7 @@ if ($add_in_mame <= 0.161) { // archives.org stop at v0.161 ?>
 	</ul>
 
 	<div id="snapshot">
-<?php	$sufix_media_directory = $arcade_game ? '':'_SL/'.$row_game['console'];
-		if (file_exists(MEDIA_PATH."/snap$sufix_media_directory/$game_name.png")) { ?>
+<?php	if (file_exists(MEDIA_PATH."/snap$sufix_media_directory/$game_name.png")) { ?>
 			Snapshot<br/>
 			<a href="<?=MEDIA_PATH?>/snap<?=$sufix_media_directory?>/<?=$game_name?>.png"><img src="<?=MEDIA_PATH?>/snap<?=$sufix_media_directory?>/<?=$game_name?>.png" class="media"/></a>
 <?php 	} elseif (file_exists(MEDIA_PATH."/titles$sufix_media_directory/$game_name.png")) { ?>
@@ -381,14 +382,14 @@ if ($add_in_mame <= 0.161) { // archives.org stop at v0.161 ?>
 			$res->execute(array($cloneof,$game_console)) or die("Unable to query database : ".array_pop($database->errorInfo()));
 			$row = $res->fetch(PDO::FETCH_ASSOC);
 			if ($cloneof) { // if this game is a clone ?>
-				<a href="?console=<?=$game_console_escape?>&name=<?=$cloneof?>"><?=$cloneof?> : <?=$row['description']?> (<?=$row['year']?>)</a>
+				<a href="?console=<?=$game_console?>&name=<?=$cloneof?>"><?=$cloneof?> : <?=$row['description']?> (<?=$row['year']?>)</a>
 
 <?php			if ($nb_brother_clones>0) { // and this clone has brothers ?>
 					<ul><span class="labels">Other clones</span>
 <?php 					$res = $database->prepare("SELECT name,description,year FROM games WHERE cloneof=? AND console=? ORDER BY year ASC,description ASC");
 						$res->execute(array($cloneof,$game_console)) or die("Unable to query database : ".array_pop($database->errorInfo()));
 						while ($row = $res->fetch(PDO::FETCH_ASSOC)) { ?>
-							<li><a href="?console=<?=$game_console_escape?>&name=<?=$row['name']?>"><?=$row['name']?> : <?=$row['description']?> (<?=$row['year']?>)</a></li>
+							<li><a href="?console=<?=$game_console?>&name=<?=$row['name']?>"><?=$row['name']?> : <?=$row['description']?> (<?=$row['year']?>)</a></li>
 <?php					} ?>
 					</ul>
 <?php			}
@@ -401,7 +402,7 @@ if ($add_in_mame <= 0.161) { // archives.org stop at v0.161 ?>
 <?php 					$res = $database->prepare("SELECT name,description,year FROM games WHERE cloneof=? AND console=? ORDER BY year ASC,description ASC");
 						$res->execute(array($game_name,$game_console)) or die("Unable to query database : ".array_pop($database->errorInfo()));
 						while ($row = $res->fetch(PDO::FETCH_ASSOC)) { ?>
-							<li><a href="?console=<?=$game_console_escape?>&name=<?=$row['name']?>"><?=$row['name']?> : <?=$row['description']?> (<?=$row['year']?>)</a></li>
+							<li><a href="?console=<?=$game_console?>&name=<?=$row['name']?>"><?=$row['name']?> : <?=$row['description']?> (<?=$row['year']?>)</a></li>
 <?php					} ?>
 					</ul>
 <?php				}
@@ -802,7 +803,7 @@ while($row = $res->fetch(PDO::FETCH_ASSOC)) { ?>
 <?php	if ($row['name']==$game_name) { // this game ?>
 			<?=$row['description']?> (<?=$row['year']?>)
 <?php	} else { // not this game ?>
-			<a href="?console=<?=$game_console_escape?>&name=<?=$row['name']?>"><?=$row['description']?></a> (<?=$row['year']?>)	
+			<a href="?console=<?=$game_console?>&name=<?=$row['name']?>"><?=$row['description']?></a> (<?=$row['year']?>)	
 <?php	} ?>
 		</li>
 <?php } ?>
