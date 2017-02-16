@@ -6,9 +6,16 @@ $(document).ready(function() {
 	if ($('#snapshot a').length)
 		$('#snapshot a').lightBox({fixedNavigation:true});
 
-	// search
-	$('#submit-search').on('click', function(e){
+	// submit search
+	$('#submit-search, #results td a').on('click', function(e){
+		// display loading box
+		$('#loading').css('display','block');
 		document.rom_search.submit();
+	});
+
+	$('#rom_search').submit(function( event ) {
+		// display loading box
+		$('#loading').css('display','block');
 	});
 
 	// open manufacturer choice

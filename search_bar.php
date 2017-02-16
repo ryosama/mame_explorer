@@ -6,8 +6,13 @@
 	<div class="suggest-container"></div>
 </div>
 
-<?php
+<div id="loading">
+	<i class="fa fa-spinner fa-spin fa-3x fa-fw"></i><br/>
+	Loading
+</div>
 
+
+<?php
 // defautl value
 $pageno = isset($_GET['pageno']) ? $_GET['pageno'] : 1;
 
@@ -97,7 +102,7 @@ if ($_SESSION['from_year'] > $_SESSION['to_year']) {
 ?>
 <div id="search-bar">
 
-<form name="rom_search" method="POST" action="results.php" accept-charset="utf-8">
+<form id="rom_search" name="rom_search" method="POST" action="results.php" accept-charset="utf-8">
 
 <div id="search-rom">
 	<input id="rom_name" type="text" name="rom_name" value="<?=$_SESSION['rom_name']?>" placeholder="Name..."/>
