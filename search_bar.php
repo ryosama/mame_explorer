@@ -13,11 +13,12 @@
 
 
 <?php
+
 // defautl value
 $pageno = isset($_GET['pageno']) ? $_GET['pageno'] : 1;
 
 // search comes from a link
-foreach (array('manufacturer','sourcefile','nplayers','categorie','language','evaluation','mature','genre','console') as $criteria) {
+foreach (array('sourcefile','nplayers','categorie','language','evaluation','mature','genre','console') as $criteria) {
 	if (isset($_GET[$criteria]) && strlen($_GET[$criteria])>0) {
 		$pageno = 1;
 		reset_session_except($criteria);

@@ -37,7 +37,6 @@ $database = load_database();
 
 	// rom or game name
 	if (strlen($_SESSION['rom_name'])>0) {
-		//$value_escape = sqlite_escape_string($_SESSION['rom_name']);
 
 		$phrase = preg_split('/ +/',$_SESSION['rom_name']); // split words
 		$and  = array();
@@ -205,7 +204,7 @@ EOT;
 
 <?php	// display each roms
 	foreach ($rows as $row) {
-		$lien = 'index.php?name='.urlencode($row['name']).'&console='.urlencode($row['console']);
+		$lien = 'index.php?name='.urlencode($row['name']).'/'.urlencode($row['console']);
 ?>
 		<tr>
 			<td class="icon"><!-- icon -->

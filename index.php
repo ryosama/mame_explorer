@@ -4,14 +4,11 @@ include_once('inc/config.php');
 include_once('inc/functions.php');
 $database = load_database();
 
-// if no console is specify --> arcade by default
-if (!(isset($_GET['console']) && strlen($_GET['console'])>0)) {
-	$_GET['console'] = 'arcade';
-}
-
 if (isset($_GET['name']) && strlen($_GET['name'])>0) { // a game is specify
-	$game_name = $_GET['name'];
-	$game_console = $_GET['console'];
+	list($game_name,$game_console) = explode('/',$_GET['name']);
+
+	if (strlen($game_console)<=0) // if no console is specify --> arcade by default
+		$game_console = 'arcade';
 
 } else { // no game specify --> find a random game
 	$res = $database->query("SELECT name,console FROM games WHERE cloneof is NULL and runnable='1' ORDER BY random() LIMIT 0,1") or die("Unable to query database : ".array_pop($database->errorInfo()));
@@ -39,7 +36,7 @@ $res->execute(array($game_name,$game_console)) or die("Unable to query database 
 
 $row_game = $res->fetch(PDO::FETCH_ASSOC);
 
-$arcade_game 			= $row_game['console'] == 'arcade' ? true :false;
+$arcade_game 			= $row_game['console'] == 'arcade' ? true : false;
 $sufix_media_directory 	= $arcade_game ? '':'_SL/'.$row_game['console'];
 
 // get some clone info to display menu

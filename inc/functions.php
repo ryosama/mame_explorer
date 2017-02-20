@@ -66,7 +66,7 @@ function game_has_info($game,$game_type) {
 
 
 function reset_session_except() {
-	static $criterias = array('rom_name','manufacturer','from_year','to_year','sourcefile','nplayers','categorie','language','evaluation','mature','genre','console'); // all criterias
+	static $criterias = array('sourcefile','nplayers','categorie','language','evaluation','mature','genre','console'); // all criterias
 	$except_criterias = func_get_args(); // do not reset thoses criterias
     for ($i=0; $i < sizeof($criterias) ; $i++) {
     	if (!in_array($criterias[$i],$except_criterias))

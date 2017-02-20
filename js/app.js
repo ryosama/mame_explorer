@@ -103,7 +103,7 @@ $(document).ready(function() {
 
 // change URL to direclty go to a game
 function goToGame(game,console) {
-	document.location.href='index.php?name='+escape(game)+'&console='+escape(console);
+	document.location.href='index.php?name='+escape(game)+'/'+escape(console);
 }
 
 // change result page
