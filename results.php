@@ -27,6 +27,7 @@ $database = load_database();
 
 <!-- RESULT LIST -->
 <?php
+	$_SESSION['rom_name'] = trim($_SESSION['rom_name']);
 	$params = array();
 
 	// build SQL request	
@@ -43,70 +44,89 @@ $database = load_database();
 		$mots = array();
 		foreach ($phrase as $mot)
 			if ($mot) {
-				array_push($and,"games.description LIKE ?");
+				$and[]  = "games.description LIKE ?";
 				$mots[] = '%'.$mot.'%';
 			}
 		
 		$and = join($and," AND ");
 
-		array_push($where,"(games.name LIKE ? OR ($and))");
+		// CRC ?
+		$crc = '';
+		if (strlen($_SESSION['rom_name']) == 8 &&  ctype_xdigit($_SESSION['rom_name'])) { // maybe a CRC code
+			$tables[] = "LEFT JOIN games_rom ON games.name=games_rom.game AND games.console=games_rom.console"; // add table rom
+			$crc  = "OR (games_rom.crc = ?)";
+		}
+
+		$sha1 = '';
+		if (strlen($_SESSION['rom_name']) == 40 &&  ctype_xdigit($_SESSION['rom_name'])) { // maybe a SHA1 code
+			$tables[] = "LEFT JOIN games_rom ON games.name=games_rom.game AND games.console=games_rom.console"; // add table rom
+			$crc  = "OR (games_rom.sha1 = ?)";
+		}
+
+		$where[]  = "((games.name LIKE ?) OR ($and) $crc)";
 		$params[] = '%'.$_SESSION['rom_name'].'%';
-		$params = array_merge( $params, $mots );
+		$params   = array_merge( $params, $mots );
+
+		if (strlen($crc)>0)
+			$params[] = strtolower($_SESSION['rom_name']);
+
+		if (strlen($sha1)>0)
+			$params[] = strtolower($_SESSION['rom_name']);
 	}
 
 	//hide clones
 	if ($_SESSION['hide_clones'])
-		array_push($where,"games.cloneof is NULL");
+		$where[] = "games.cloneof is NULL";
 
 	// manufacturer
 	if (strlen($_SESSION['manufacturer'])>0) {
-		array_push($where,"games.manufacturer LIKE ?");
+		$where[]  = "games.manufacturer LIKE ?";
 		$params[] = $_SESSION['manufacturer'];
 	}
 
 	// year from
 	if (is_numeric($_SESSION['from_year'])) {
-		array_push($where,"games.year >= ?");
+		$where[]  = "games.year >= ?";
 		$params[] = $_SESSION['from_year'];
 	}
 
 	// year to
 	if (is_numeric($_SESSION['to_year'])) {
-		array_push($where,"games.year <= ?");
+		$where[]  = "games.year <= ?";
 		$params[] = $_SESSION['to_year'];
 	}
 
 	// sourcefile
 	if (strlen($_SESSION['sourcefile'])>0) {
-		array_push($where,"games.sourcefile = ?");
+		$where[]  = "games.sourcefile = ?";
 		$params[] = $_SESSION['sourcefile'];
 	}
 
 	// nplayers
 	if (strlen($_SESSION['nplayers'])>0) {
 		$tables[] = "LEFT JOIN nplayers ON games.name=nplayers.game"; // add table nplayers
-		array_push($where,"nplayers.players = ?");
+		$where[]  = "nplayers.players = ?";
 		$params[] = $_SESSION['nplayers'];
 	}
 
 	// nplayers
 	if (strlen($_SESSION['categorie'])>0) {
 		$tables[] = "LEFT JOIN categories ON games.name=categories.game"; // add table categories
-		array_push($where,"categories.categorie = ?");
+		$where[]  = "categories.categorie = ?";
 		$params[] = $_SESSION['categorie'];
 	}
 
 	// language
 	if (strlen($_SESSION['language'])>0) {
 		$tables[] = "LEFT JOIN games_languages ON games.name=games_languages.game LEFT JOIN languages ON games_languages.language_id=languages.id"; // add table language
-		array_push($where,"languages.language = ?");
+		$where[]  = "languages.language = ?";
 		$params[] = $_SESSION['language'];
 	}
 
 	// evaluation
 	if (strlen($_SESSION['evaluation'])>0) {
 		$tables[] = "LEFT JOIN bestgames ON games.name=bestgames.game"; // add table language
-		array_push($where,"bestgames.evaluation = ?");
+		$where[]  = "bestgames.evaluation = ?";
 		$params[] = $_SESSION['evaluation'];
 	}
 
@@ -118,18 +138,18 @@ $database = load_database();
 	// genre
 	if (strlen($_SESSION['genre'])>0) {
 		$tables[] = "LEFT JOIN genre ON games.name=genre.game"; // add table genre
-		array_push($where,"genre.genre = ?");
+		$where[]  = "genre.genre = ?";
 		$params[] = $_SESSION['genre'];
 	}
 
 	// console
 	if (strlen($_SESSION['console'])>0) {
-		array_push($where,"games.console = ?");
+		$where[] = "games.console = ?";
 		$params[] = $_SESSION['console'];
 	}
 
 	// only runnables
-	array_push($where,"games.runnable = '1'");
+	$where[] = "games.runnable = '1'";
 
 	// join where clause
 	$where = join(' AND ',$where);
@@ -163,20 +183,23 @@ ORDER BY $order_by
 LIMIT $limit
 EOT;
 
+	//echo "<pre>$sql</pre>";
+	//var_dump($params);
+
 	$sql = preg_replace('/ +LIMIT +\d+ *, *\d+ *$/i','',$sql);
 
 	$sql_count = preg_replace('/^ *SELECT\s+.+\s+FROM\s+/i','SELECT count(*) as nb_rows FROM ',$sql);
 	$sql_count = preg_replace('/ *ORDER\s+BY\s+.+\s+(?:ASC|DESC)/i',' ',$sql_count);
 	$sql_count = preg_replace('/ *LIMIT +\d+ *, *\d+ */i',' ',$sql_count);
-	$res_count = $database->prepare($sql_count);
+	$res_count = $database->prepare($sql_count) or die("Unable to prepare query : ".array_pop($database->errorInfo()));
 	$res_count->execute($params) or die("Unable to query1 ($sql_count) database : ".array_pop($database->errorInfo()));
 	$row_count = $res_count->fetch(PDO::FETCH_ASSOC);
 	$row_count = $row_count['nb_rows'];
 	$lastpage  = ceil($row_count / $_SESSION['limit']);
 
-	//echo "<pre>$sql</pre>";
+	
 
-	$res  = $database->prepare($sql);
+	$res  = $database->prepare($sql) or die("Unable to prepare query : ".array_pop($database->errorInfo()));
 	$res->execute($params) or die("Unable to query2 ($sql) database : ".array_pop($database->errorInfo()));
 	$rows = $res->fetchAll();
 
