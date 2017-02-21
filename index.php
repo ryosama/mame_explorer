@@ -76,13 +76,31 @@ $has_info = game_has_info($game_name,$row_game['console']);
 <script language="javascript">
 
 function show_media(link,media_type) {
-	$('#snapshot').html(
-		$(link).text() +
-		'<br/>'+
-		'<a href="<?=MEDIA_PATH?>/'+media_type+'/<?=$game_name?>.'+(media_type=='icons'?'ico':'png')+'">' +
-		'<img src="<?=MEDIA_PATH?>/'+media_type+'/<?=$game_name?>.'+(media_type=='icons'?'ico':'png')+'" class="media"/></a>'
-	);
-	$('#snapshot a').lightBox({fixedNavigation:true});
+	switch(media_type) {
+		case 'icons' 	:
+			extension = 'ico'; break;
+		case 'manuals' 	:
+		case 'manuals_SL/<?=$row_game['console']?>' :
+			extension = 'pdf'; break;
+		default :
+			extension = 'png';
+	}
+
+	// if image
+	if (extension == 'ico' || extension == 'png') {
+		$('#snapshot').html(
+			$(link).text() +
+			'<br/>'+
+			'<a href="<?=MEDIA_PATH?>/'+media_type+'/<?=$game_name?>.'+extension+'">' +
+			'<img src="<?=MEDIA_PATH?>/'+media_type+'/<?=$game_name?>.'+extension+'" class="media"/></a>'
+		);
+		$('#snapshot a').lightBox({fixedNavigation:true});
+
+	} else { // if PDF
+		$('#snapshot').html(
+			'<a href="<?=MEDIA_PATH?>/'+media_type+'/<?=$game_name?>.'+extension+'"><i class="fa fa-file-pdf-o"></i> Download PDF manual</a>'
+		);
+	}
 }
 
 
@@ -205,20 +223,30 @@ if ($add_in_mame <= 0.161) { // archives.org stop at v0.161 ?>
 				'logo'		=> 'Logo',			'scores'	=> 'Score',			'select'	=> 'Select',
 				'versus'	=> 'Versus',		'marquees'	=> 'Marquee',		'flyers'	=> 'Flyer',
 				'cabinets'	=> 'Cabinet',		'cpanel'	=> 'Control panel',	'pcb'		=> 'PCB',
-				'icons'		=> 'Icon'
+				'icons'		=> 'Icon',			'manuals'	=> 'Manual'
 			);
 		} else {
 			$media_type = array(
 				'snap_SL/'   .$row_game['console']	=> 'Snapshot',
 				'titles_SL/' .$row_game['console']	=> 'Title',
 				'covers_SL/' .$row_game['console']	=> 'Covers',
-				'manuels_SL/'.$row_game['console']	=> 'Manual'
+				'manuals_SL/'.$row_game['console']	=> 'Manual'
 			);
 		}
 ?>
 	<ul id="media-list">
 <?php	foreach ($media_type as $media_id => $media_name) {
-			if (file_exists(MEDIA_PATH."/$media_id/$game_name.".($media_id == 'icons' ? 'ico':'png'))) { ?>
+			switch($media_id) {
+				case 'icons' 	:
+					$extension = 'ico'; break;
+				case 'manuals' 	:
+				case 'manuals_SL/'.$row_game['console'] :
+					$extension = 'pdf'; break;
+				default :
+					$extension = 'png';
+			}
+
+			if (file_exists(MEDIA_PATH."/$media_id/$game_name.$extension")) { ?>
 				<li onclick="show_media(this,'<?=$media_id?>')"><?=$media_name?></li>
 <?php 		}
 		} ?>
