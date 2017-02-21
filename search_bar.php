@@ -39,6 +39,13 @@ if (isset($_POST['new_search']) && $_POST['new_search']==1) {
 	reset_session_except('rom_name','manufacturer','from_year','to_year');
 }
 
+// reset form
+if (isset($_GET['new_search']) && $_GET['new_search']==1) {
+	$pageno = 1;
+	foreach (array('rom_name','manufacturer','from_year','to_year') as $criteria)
+		$_SESSION[$criteria] = '';
+}
+
 
 // build the session info
 // init session key

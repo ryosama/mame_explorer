@@ -281,12 +281,12 @@ if ($add_in_mame <= 0.161) { // archives.org stop at v0.161 ?>
 
 <div id="game_manufacturer" class="info">
 	<span class="labels">Manufacturer</span>
-	<span class="values"><a href="results.php?manufacturer=<?=urlencode($row_game['manufacturer'])?>"><?=$row_game['manufacturer']?></a></span>
+	<span class="values"><a href="results.php?new_search=1&manufacturer=<?=urlencode($row_game['manufacturer'])?>"><?=$row_game['manufacturer']?></a></span>
 </div>
 
 <div id="game_year" class="info">
 	<span class="labels">Year</span>
-	<span class="values"><a href="results.php?year=<?=$row_game['year']?>"><?=$row_game['year']?></a>
+	<span class="values"><a href="results.php?new_search=1&year=<?=$row_game['year']?>"><?=$row_game['year']?></a>
 	</span>
 </div>
 
@@ -298,7 +298,7 @@ if ($add_in_mame <= 0.161) { // archives.org stop at v0.161 ?>
 <div id="game_system" class="info">
 	<span class="labels">System</span>
 	<span class="values">
-		<a href="results.php?console=<?=$row_game['console']?>">
+		<a href="results.php?new_search=1&console=<?=$row_game['console']?>">
 		<?=$row_game['console']?> / <?=$row_game['softwarelist_description']?>
 <?php	if (file_exists("images/consoles/$row_game[console].png")) { ?>
 			<img class="console-icon" src="images/consoles/<?=$row_game['console']?>.png"/>
@@ -313,7 +313,7 @@ if ($add_in_mame <= 0.161) { // archives.org stop at v0.161 ?>
 			while($row = $res->fetch(PDO::FETCH_ASSOC)) { ?>
 				<div id="game_nplayers" class="info">
 					<span class="labels">Number of players</span>
-					<span class="values"><a href="results.php?nplayers=<?=urlencode($row['players'])?>"><?=$row['players']?></a></span>
+					<span class="values"><a href="results.php?new_search=1&nplayers=<?=urlencode($row['players'])?>"><?=$row['players']?></a></span>
 				</div>
 <?php		}	
 		} ?>
@@ -321,7 +321,7 @@ if ($add_in_mame <= 0.161) { // archives.org stop at v0.161 ?>
 <?php if ($arcade_game) { ?>
 		<div id="game_add_in_mame" class="info">
 			<span class="labels">Added to MAME</span>
-			<span class="values"><a href="results.php?categorie=<?=urlencode($row_version['categorie'])?>"><?=$row_version['categorie']?></a></span>
+			<span class="values"><a href="results.php?new_search=1&categorie=<?=urlencode($row_version['categorie'])?>"><?=$row_version['categorie']?></a></span>
 		</div>
 
 		<div id="game_romset_size" class="info">
@@ -356,7 +356,7 @@ if ($add_in_mame <= 0.161) { // archives.org stop at v0.161 ?>
 				<span class="values">
 <?php 				$html_languages = array();
 					while($row = $res->fetch(PDO::FETCH_ASSOC))
-						$html_languages[] = '<a href="results.php?language='.urlencode($row['language']).'">'.$row['language'].'</a>';
+						$html_languages[] = '<a href="results.php?new_search=1&language='.urlencode($row['language']).'">'.$row['language'].'</a>';
 					echo join(' / ',$html_languages); ?>
 				</span>
 			</div>
@@ -368,7 +368,7 @@ if ($add_in_mame <= 0.161) { // archives.org stop at v0.161 ?>
 			if (strlen($row['evaluation'])>0) { ?>
 				<div id="game_evaluation" class="info">
 					<span class="labels">Evaluation</span>
-					<span class="values"><a href="results.php?evaluation=<?=urlencode($row['evaluation'])?>"><?=$row['evaluation']?></a></span>
+					<span class="values"><a href="results.php?new_search=1&evaluation=<?=urlencode($row['evaluation'])?>"><?=$row['evaluation']?></a></span>
 				</div>
 <?php   	}
 		} ?>
@@ -379,7 +379,7 @@ if ($add_in_mame <= 0.161) { // archives.org stop at v0.161 ?>
 			if ($row['mature'] > 0) { ?>
 				<div id="game_mature" class="info">
 					<span class="labels">Mature</span>
-					<span class="values"><a href="results.php?mature=on">This game is for adults only</a></span>
+					<span class="values"><a href="results.php?new_search=1&mature=on">This game is for adults only</a></span>
 				</div>
 <?php   	}
 		} ?>
@@ -390,7 +390,7 @@ if ($add_in_mame <= 0.161) { // archives.org stop at v0.161 ?>
 			if (strlen($row['genre']) > 0) { ?>
 				<div id="game_genre" class="info">
 					<span class="labels">Genre</span>
-					<span class="values"><a href="results.php?genre=<?=urlencode($row['genre'])?>"><?=$row['genre']?></a></span>
+					<span class="values"><a href="results.php?new_search=1&genre=<?=urlencode($row['genre'])?>"><?=$row['genre']?></a></span>
 				</div>
 <?php   	}
 		} ?>
@@ -847,9 +847,9 @@ if ($arcade_game && $has_info['categories']) {
 	<ul class="categories">
 <?php while($row = $res->fetch(PDO::FETCH_ASSOC)) { 
 	if ($row['version_added'] == 1) { ?>
-		<li><a href="results.php?categorie=<?=urlencode($row['categorie'])?>">Added to Mame in version <?=$row['categorie']?></a></li>
+		<li><a href="results.php?new_search=1&categorie=<?=urlencode($row['categorie'])?>">Added to Mame in version <?=$row['categorie']?></a></li>
 <?php } else { ?>
-		<li><a href="results.php?categorie=<?=urlencode($row['categorie'])?>"><?=$row['categorie']?></a></li>
+		<li><a href="results.php?new_search=1&categorie=<?=urlencode($row['categorie'])?>"><?=$row['categorie']?></a></li>
 <?php }
 	} ?>
 	</ul>
