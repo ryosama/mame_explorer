@@ -55,7 +55,7 @@ $row = $res->fetch(PDO::FETCH_ASSOC);
 $nb_brother_clones = $row['nb_brother_clones'];
 
 // get somes infos about the game for displaying menus
-$has_info = game_has_info($game_name,$row_game['console']);
+$has_info  = game_has_info($game_name,$row_game['console']);
 
 ?><html>
 <head>
@@ -308,15 +308,19 @@ if ($add_in_mame <= 0.161) { // archives.org stop at v0.161 ?>
 </div>
 
 
-<?php 	$res = $database->prepare("SELECT * FROM nplayers WHERE game=?");
-	 	if ($arcade_game && $res->execute(array($game_name))) {
+<?php 	
+	if ($arcade_game && $has_info['nplayers']) {
+		$res = $database->prepare("SELECT * FROM nplayers WHERE game=?");
+	 	if ($res->execute(array($game_name))) {
 			while($row = $res->fetch(PDO::FETCH_ASSOC)) { ?>
 				<div id="game_nplayers" class="info">
 					<span class="labels">Number of players</span>
 					<span class="values"><a href="results.php?new_search=1&nplayers=<?=urlencode($row['players'])?>"><?=$row['players']?></a></span>
 				</div>
 <?php		}	
-		} ?>
+		}
+	}
+?>
 
 <?php if ($arcade_game) { ?>
 		<div id="game_add_in_mame" class="info">
@@ -349,8 +353,10 @@ if ($add_in_mame <= 0.161) { // archives.org stop at v0.161 ?>
 <?php } ?>
 
 
-<?php	$res = $database->prepare("SELECT L.language FROM languages L LEFT JOIN games_languages GL ON L.id=GL.language_id WHERE GL.game=?");
-		if ($arcade_game && $res->execute(array($game_name))) { ?>
+<?php	
+	if ($arcade_game && $has_info['games_languages']) {
+		$res = $database->prepare("SELECT L.language FROM languages L LEFT JOIN games_languages GL ON L.id=GL.language_id WHERE GL.game=?");
+		if ($res->execute(array($game_name))) { ?>
 			<div id="game_language" class="info">
 				<span class="labels">Language</span>
 				<span class="values">
@@ -360,10 +366,14 @@ if ($add_in_mame <= 0.161) { // archives.org stop at v0.161 ?>
 					echo join(' / ',$html_languages); ?>
 				</span>
 			</div>
-<?php 	} ?>
+<?php 	}
+	}
+?>
 
-<?php	$res = $database->prepare("SELECT evaluation FROM bestgames WHERE game=?");
-		if ($arcade_game && $res->execute(array($game_name))) {
+<?php	
+	if ($arcade_game && $has_info['bestgames']) {
+		$res = $database->prepare("SELECT evaluation FROM bestgames WHERE game=?");
+		if ($res->execute(array($game_name))) {
 			$row = $res->fetch(PDO::FETCH_ASSOC);
 			if (strlen($row['evaluation'])>0) { ?>
 				<div id="game_evaluation" class="info">
@@ -371,10 +381,14 @@ if ($add_in_mame <= 0.161) { // archives.org stop at v0.161 ?>
 					<span class="values"><a href="results.php?new_search=1&evaluation=<?=urlencode($row['evaluation'])?>"><?=$row['evaluation']?></a></span>
 				</div>
 <?php   	}
-		} ?>
+		}
+	}
+?>
 
-<?php	$res = $database->prepare("SELECT count(*) as mature FROM mature WHERE game=?");
-		if ($arcade_game && $res->execute(array($game_name))) {
+<?php
+	if ($arcade_game && $has_info['mature']) {
+		$res = $database->prepare("SELECT count(*) as mature FROM mature WHERE game=?");
+		if ($res->execute(array($game_name))) {
 			$row = $res->fetch(PDO::FETCH_ASSOC);
 			if ($row['mature'] > 0) { ?>
 				<div id="game_mature" class="info">
@@ -382,10 +396,14 @@ if ($add_in_mame <= 0.161) { // archives.org stop at v0.161 ?>
 					<span class="values"><a href="results.php?new_search=1&mature=on">This game is for adults only</a></span>
 				</div>
 <?php   	}
-		} ?>
+		}
+	}
+?>
 
-<?php	$res = $database->prepare("SELECT genre FROM genre WHERE game=?");
-		if ($arcade_game && $res->execute(array($game_name))) {
+<?php	
+	if ($arcade_game && $has_info['genre']) {
+		$res = $database->prepare("SELECT genre FROM genre WHERE game=?");
+		if ($res->execute(array($game_name))) {
 			$row = $res->fetch(PDO::FETCH_ASSOC);
 			if (strlen($row['genre']) > 0) { ?>
 				<div id="game_genre" class="info">
@@ -393,7 +411,8 @@ if ($add_in_mame <= 0.161) { // archives.org stop at v0.161 ?>
 					<span class="values"><a href="results.php?new_search=1&genre=<?=urlencode($row['genre'])?>"><?=$row['genre']?></a></span>
 				</div>
 <?php   	}
-		} ?>
+		}
+	} ?>
 </div>
 
 

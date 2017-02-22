@@ -33,20 +33,19 @@ function bool2yesno($bool) {
 	return $bool ? 'yes' : 'no';
 }
 
-
 function game_has_info($game,$game_type) {
 	global $database;
 	$has_info = array(
 		'games_configuration'=>'','games_control'=>'','games_display'=>'','games_dipswitch'=>'','games_adjuster'=>'',
 		'games_rom'=>'','games_biosset'=>'','games_chip'=>'','games_sample'=>'','games_disk'=>'','games_series'=>'','categories'=>'',
-		'mameinfo'=>'','games_histories'=>'','games_command'=>'','cheats'=>'','stories'=>''
+		'mameinfo'=>'','games_histories'=>'','games_command'=>'','cheats'=>'','stories'=>'','bestgames'=>'','languages'=>'','nplayers'=>'','mature'=>'','genre'=>''
 	);
 
 	if ($game_type == 'arcade') {
 		$informations = array(
 			'games_configuration','games_control','games_display','games_dipswitch','games_adjuster',
 			'games_rom','games_biosset','games_chip','games_sample','games_disk','games_series','categories',
-			'mameinfo','games_histories','games_command','cheats','stories'
+			'mameinfo','games_histories','games_command','cheats','stories','bestgames','games_languages','nplayers','mature','genre'
 		);
 	} else {
 		$informations = array('games_rom');
@@ -54,10 +53,18 @@ function game_has_info($game,$game_type) {
 
 	foreach ($informations as $table) {
 		$has_info[$table] = '';
-		$res = $database->prepare("SELECT count(*) as has_info FROM $table WHERE game=?");
-		if ($res->execute(array($game))) {
-			$row = $res->fetch(PDO::FETCH_ASSOC);
-			$has_info[$table] = $row['has_info'];
+
+		// check if table exists
+		$res = $database->prepare("SELECT count(*) as table_exists FROM sqlite_master WHERE type='table' AND name=?");
+		$res->execute(array($table));
+		$row = $res->fetch(PDO::FETCH_ASSOC);
+
+		if ($row['table_exists']) {
+			$res = $database->prepare("SELECT count(*) as has_info FROM $table WHERE game=?") or die("Can't prepare : ".array_pop($database->errorInfo()));
+			if ($res->execute(array($game))) {
+				$row = $res->fetch(PDO::FETCH_ASSOC);
+				$has_info[$table] = $row['has_info'];
+			}
 		}
 	}
 
