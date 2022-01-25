@@ -4,9 +4,9 @@ It's a responsive web interface (PHP / Perl / SQLite) to retrieve all informatio
 
 Demo http://78.213.180.135:5080/mame
 
-![Screenshot](images/screenshot_desktop.jpg?raw=true  =285x "Screenshot") ![Screenshot on mobile device](images/screenshot_phone.jpg?raw=true =250x "Screenshot on mobile device")
+![Screenshot](https://raw.githubusercontent.com/ryosama/mame_explorer/master/images/screenshot_desktop.jpg?raw=true "Screenshot") ![Screenshot on mobile device](https://raw.githubusercontent.com/ryosama/mame_explorer/master/images/screenshot_phone.jpg?raw=true "Screenshot on mobile device")
 
-![Rom Search](images/rom_search_desktop.jpg?raw=true =285x "Rom Search") ![Rom Search on mobile device](images/rom_search_phone.jpg?raw=true =250x "Rom Search on mobile device")
+![Rom Search](https://raw.githubusercontent.com/ryosama/mame_explorer/master/images/rom_search_desktop.jpg?raw=true "Rom Search") ![Rom Search on mobile device](https://raw.githubusercontent.com/ryosama/mame_explorer/master/images/rom_search_phone.jpg?raw=true "Rom Search on mobile device")
 
 # Create Database
 -----------------
