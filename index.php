@@ -65,7 +65,9 @@ $has_info  = game_has_info($game_name,$row_game['console']);
 <link rel="stylesheet" href="css/font-awesome.min.css">
 <link rel="stylesheet" href="css/bootstrap.css">
 <link rel="stylesheet" type="text/css" href="css/app.css">
-<link rel="stylesheet" type="text/css" href="css/color.css">
+<link rel="stylesheet" title="Green" type="text/css" href="css/color.css">
+<link rel="alternate stylesheet" title="Dark" type="text/css" href="css/color-dark.css">
+<link rel="alternate stylesheet" title="Neon" type="text/css" href="css/color-neon.css">
 <link rel="stylesheet" type="text/css" href="css/mobile.css">
 <script type="text/javascript" src="js/jquery.js"></script>
 <script type="text/javascript" src="js/app.js"></script>

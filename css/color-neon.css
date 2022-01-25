@@ -1,0 +1,76 @@
+/* color */ 
+
+* {
+	--text-color: #c88fff;
+	--background-color-1:#121212;
+	--background-color-2:#251e2d;
+}
+
+body, #search-bar, #suggest-manufacturer  {
+	background-color: var(--background-color-1);
+	color:var(--text-color);
+}
+
+input,select {
+	background-color: var(--background-color-2);
+	color:var(--text-color);
+}
+
+
+a {
+	color:var(--text-color);
+}
+
+a:hover {
+	text-shadow: 0px 0px 6px var(--text-color);
+}
+
+h1, #search-bar, .infos, #suggest-manufacturer {
+	border-color: var(--text-color);
+	
+}
+
+#search-bar, .infos, #suggest-container {
+	box-shadow: 0 0 6px var(--text-color);
+}
+
+h1, h2 {
+	color:var(--text-color);
+	text-shadow: 0px 0px 6px var(--text-color);
+	-webkit-text-stroke:1px black;
+}
+
+table {
+	background-color: var(--background-color-2);
+}
+
+tr:nth-child(2n) {
+	background-color: var(--background-color-1);
+}
+
+th {
+	color:var(--text-color);
+}
+
+td {
+	color:var(--text-color);
+}
+
+a.btn {
+	background-color: var(--background-color-2) ;
+	background-image:none;
+	border-color:var(--text-color);
+	color:var(--text-color);
+	text-shadow: none;
+	box-shadow: 0 0 6px var(--text-color);
+}
+
+a.btn:hover {
+	background-color: var(--text-color) ;
+	color:var(--background-color-2);
+	box-shadow: 0 0 10px white;
+}
+
+#icon {
+	border-color:black;
+}

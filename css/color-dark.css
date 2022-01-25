@@ -1,0 +1,51 @@
+/* color */ 
+* {
+    --text-color: #ebebeb;
+  }
+  
+  
+  body, #search-bar, #suggest-manufacturer  {
+      background-color: #121212;
+      color: var(--text-color);
+  }
+  
+  input,select {
+      background-color: #2d2d2d;
+      color:var(--text-color);
+  }
+  
+  a {
+      color:var(--text-color);
+  }
+  
+  h1, #search-bar, .infos, #suggest-manufacturer {
+      border-color: #aeaeae;
+  }
+  
+  h1 {
+      color:var(--text-color);
+  }
+  
+  h2 {
+      color:var(--text-color);
+  }
+  
+  table {
+      background-color:#2d2d2d;
+  }
+  
+  tr:nth-child(2n) {
+      background-color: #1a1a1a;
+  }
+  
+  th {
+      color:var(--text-color);
+  }
+  
+  td {
+      color:var(--text-color);
+  }
+  
+  #icon {
+      border-color:black;
+  }
