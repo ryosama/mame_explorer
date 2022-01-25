@@ -28,27 +28,27 @@ $database = load_database();
 <!-- RESULT LIST -->
 <?php
 	$_SESSION['rom_name'] = trim($_SESSION['rom_name']);
-	$params = array();
+	$params = [];
 
 	// build SQL request	
-	$tables = array('games LEFT JOIN softwarelist ON games.console=softwarelist.name');
-	$fields = array('games.*, softwarelist.description as softwarelist_description');
+	$tables = ['games LEFT JOIN softwarelist ON games.console=softwarelist.name'];
+	$fields = ['games.*, softwarelist.description as softwarelist_description'];
 
-	$where = array();
+	$where = [];
 
 	// rom or game name
 	if (strlen($_SESSION['rom_name'])>0) {
 
 		$phrase = preg_split('/ +/',$_SESSION['rom_name']); // split words
-		$and  = array();
-		$mots = array();
+		$and  = [];
+		$mots = [];
 		foreach ($phrase as $mot)
 			if ($mot) {
 				$and[]  = "games.description LIKE ?";
 				$mots[] = '%'.$mot.'%';
 			}
 		
-		$and = join($and," AND ");
+		$and = join(" AND ",$and);
 
 		// CRC ?
 		$crc = '';
@@ -156,7 +156,7 @@ $database = load_database();
 	$where = $where ? " WHERE $where " : '';
 
 	// order
-	if (in_array($_SESSION['order_by'],array('name','description','year','console','manufacturer'))) {
+	if ( in_array($_SESSION['order_by'], ['name','description','year','console','manufacturer'] ) ) {
 		$order_by = ' '.$_SESSION['order_by'].' ';
 	} else {
 		$order_by = ' name ';

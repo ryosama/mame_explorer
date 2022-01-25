@@ -18,7 +18,7 @@
 $pageno = isset($_GET['pageno']) ? $_GET['pageno'] : 1;
 
 // search comes from a link
-foreach (array('sourcefile','nplayers','categorie','language','evaluation','mature','genre','console') as $criteria) {
+foreach (['sourcefile','nplayers','categorie','language','evaluation','mature','genre','console'] as $criteria) {
 	if (isset($_GET[$criteria]) && strlen($_GET[$criteria])>0) {
 		$pageno = 1;
 		reset_session_except($criteria);
@@ -42,21 +42,21 @@ if (isset($_POST['new_search']) && $_POST['new_search']==1) {
 // reset form
 if (isset($_GET['new_search']) && $_GET['new_search']==1) {
 	$pageno = 1;
-	foreach (array('rom_name','manufacturer','from_year','to_year') as $criteria)
+	foreach (['rom_name','manufacturer','from_year','to_year'] as $criteria)
 		$_SESSION[$criteria] = '';
 }
 
 
 // build the session info
 // init session key
-foreach (array('rom_name','hide_clones','manufacturer','from_year','to_year','sourcefile','nplayers','categorie','language','evaluation','mature','genre','console','order_by','reverse_order','limit','pageno') as $key) {
+foreach (['rom_name','hide_clones','manufacturer','from_year','to_year','sourcefile','nplayers','categorie','language','evaluation','mature','genre','console','order_by','reverse_order','limit','pageno'] as $key) {
 	if (!isset($_SESSION[$key])) $_SESSION[$key] = '';
 	if (isset($_POST[$key])) 	 $_SESSION[$key] = $_POST[$key];
 	if (isset($_GET[$key])) 	 $_SESSION[$key] = $_GET[$key];
 }
 
 // build checkbox
-foreach (array('hide_clones','reverse_order') as $checkbox) {
+foreach (['hide_clones','reverse_order'] as $checkbox) {
 	
 	if (isset($_POST[$checkbox])) {
 		$check = sizeof(array_unique($_POST[$checkbox]));

@@ -32,7 +32,7 @@ WHERE
 EOT;
 
 $res = $database->prepare($sql);
-$res->execute(array($game_name,$game_console)) or die("Unable to query database : ".array_pop($database->errorInfo()));
+$res->execute([$game_name,$game_console]) or die("Unable to query database : ".array_pop($database->errorInfo()));
 
 $row_game = $res->fetch(PDO::FETCH_ASSOC);
 
@@ -45,12 +45,12 @@ if ($row_game['cloneof'])
 	$cloneof = $row_game['cloneof'];
 
 $res = $database->prepare("SELECT count(*) as nb_child_clones FROM games WHERE cloneof=? AND console=?");
-$res->execute(array($game_name,$game_console)) or die("Unable to query database : ".array_pop($database->errorInfo()));
+$res->execute([$game_name,$game_console]) or die("Unable to query database : ".array_pop($database->errorInfo()));
 $row = $res->fetch(PDO::FETCH_ASSOC);
 $nb_child_clones = $row['nb_child_clones'];
 
 $res = $database->prepare("SELECT count(*) as nb_brother_clones FROM games WHERE name<>? AND console=? AND cloneof=?");
-$res->execute(array($game_name,$game_console,$cloneof)) or die("Unable to query database : ".array_pop($database->errorInfo()));
+$res->execute([$game_name,$game_console,$cloneof]) or die("Unable to query database : ".array_pop($database->errorInfo()));
 $row = $res->fetch(PDO::FETCH_ASSOC);
 $nb_brother_clones = $row['nb_brother_clones'];
 
@@ -178,17 +178,17 @@ $(document).ready(function() {
 </ol>
 
 <?php
-$row_rom_size = array();
+$row_rom_size = [];
 $row_rom_size['romset_size'] = $row_rom_size['romset_file'] = $row_rom_size['romset_zip'] = '';
 $res = $database->prepare("SELECT romset_size,romset_file,romset_zip FROM mameinfo WHERE game=?");
-if ($arcade_game && $res->execute(array($game_name))) {
+if ($arcade_game && $res->execute([$game_name])) {
 	$row_rom_size = $res->fetch(PDO::FETCH_ASSOC);
 }
 
-$row_version = array();
+$row_version = [];
 $row_version['categorie'] = '';
 $res = $database->prepare("SELECT * FROM categories WHERE game=? AND version_added='1'");
-if ($arcade_game && $res->execute(array($game_name))) {
+if ($arcade_game && $res->execute([$game_name])) {
 	$row_version = $res->fetch(PDO::FETCH_ASSOC);
 }
 ?>
@@ -217,21 +217,21 @@ if ($add_in_mame <= 0.161) { // archives.org stop at v0.161 ?>
 <div id="media">
 <?php	
 		if ($arcade_game) {
-			$media_type = array(
+			$media_type = [
 				'snap'		=> 'Snapshot',		'titles'	=> 'Title',			'bosses'	=> 'Boss',
 				'ends'		=> 'Ending',		'gameover'	=> 'Game Over',		'howto'		=> 'How To',
 				'logo'		=> 'Logo',			'scores'	=> 'Score',			'select'	=> 'Select',
 				'versus'	=> 'Versus',		'marquees'	=> 'Marquee',		'flyers'	=> 'Flyer',
 				'cabinets'	=> 'Cabinet',		'cpanel'	=> 'Control panel',	'pcb'		=> 'PCB',
 				'icons'		=> 'Icon',			'manuals'	=> 'Manual'
-			);
+			];
 		} else {
-			$media_type = array(
+			$media_type = [
 				'snap_SL/'   .$row_game['console']	=> 'Snapshot',
 				'titles_SL/' .$row_game['console']	=> 'Title',
 				'covers_SL/' .$row_game['console']	=> 'Covers',
 				'manuals_SL/'.$row_game['console']	=> 'Manual'
-			);
+			];
 		}
 ?>
 	<ul id="media-list">
@@ -311,7 +311,7 @@ if ($add_in_mame <= 0.161) { // archives.org stop at v0.161 ?>
 <?php 	
 	if ($arcade_game && $has_info['nplayers']) {
 		$res = $database->prepare("SELECT * FROM nplayers WHERE game=?");
-	 	if ($res->execute(array($game_name))) {
+	 	if ($res->execute([$game_name])) {
 			while($row = $res->fetch(PDO::FETCH_ASSOC)) { ?>
 				<div id="game_nplayers" class="info">
 					<span class="labels">Number of players</span>
@@ -343,7 +343,7 @@ if ($add_in_mame <= 0.161) { // archives.org stop at v0.161 ?>
 
 <?php } else { // console game
 	$res = $database->prepare("SELECT SUM(size) as romset_size FROM games_rom WHERE game=? AND console=?");
-	$res->execute(array($game_name,$game_console));
+	$res->execute([$game_name,$game_console]);
 	$row = $res->fetch(PDO::FETCH_ASSOC)
 ?>
 		<div id="game_romset_size" class="info">
@@ -356,11 +356,11 @@ if ($add_in_mame <= 0.161) { // archives.org stop at v0.161 ?>
 <?php	
 	if ($arcade_game && $has_info['games_languages']) {
 		$res = $database->prepare("SELECT L.language FROM languages L LEFT JOIN games_languages GL ON L.id=GL.language_id WHERE GL.game=?");
-		if ($res->execute(array($game_name))) { ?>
+		if ($res->execute([$game_name])) { ?>
 			<div id="game_language" class="info">
 				<span class="labels">Language</span>
 				<span class="values">
-<?php 				$html_languages = array();
+<?php 				$html_languages = [];
 					while($row = $res->fetch(PDO::FETCH_ASSOC))
 						$html_languages[] = '<a href="results.php?new_search=1&language='.urlencode($row['language']).'">'.$row['language'].'</a>';
 					echo join(' / ',$html_languages); ?>
@@ -373,7 +373,7 @@ if ($add_in_mame <= 0.161) { // archives.org stop at v0.161 ?>
 <?php	
 	if ($arcade_game && $has_info['bestgames']) {
 		$res = $database->prepare("SELECT evaluation FROM bestgames WHERE game=?");
-		if ($res->execute(array($game_name))) {
+		if ($res->execute([$game_name])) {
 			$row = $res->fetch(PDO::FETCH_ASSOC);
 			if (strlen($row['evaluation'])>0) { ?>
 				<div id="game_evaluation" class="info">
@@ -388,7 +388,7 @@ if ($add_in_mame <= 0.161) { // archives.org stop at v0.161 ?>
 <?php
 	if ($arcade_game && $has_info['mature']) {
 		$res = $database->prepare("SELECT count(*) as mature FROM mature WHERE game=?");
-		if ($res->execute(array($game_name))) {
+		if ($res->execute([$game_name])) {
 			$row = $res->fetch(PDO::FETCH_ASSOC);
 			if ($row['mature'] > 0) { ?>
 				<div id="game_mature" class="info">
@@ -403,7 +403,7 @@ if ($add_in_mame <= 0.161) { // archives.org stop at v0.161 ?>
 <?php	
 	if ($arcade_game && $has_info['genre']) {
 		$res = $database->prepare("SELECT genre FROM genre WHERE game=?");
-		if ($res->execute(array($game_name))) {
+		if ($res->execute([$game_name])) {
 			$row = $res->fetch(PDO::FETCH_ASSOC);
 			if (strlen($row['genre']) > 0) { ?>
 				<div id="game_genre" class="info">
@@ -423,7 +423,7 @@ if ($add_in_mame <= 0.161) { // archives.org stop at v0.161 ?>
 	<div id="parent">
 		<span class="labels">Parent</span>
 <?php		$res = $database->prepare("SELECT description,year FROM games WHERE name=? AND console=?");
-			$res->execute(array($cloneof,$game_console)) or die("Unable to query database : ".array_pop($database->errorInfo()));
+			$res->execute([$cloneof,$game_console]) or die("Unable to query database : ".array_pop($database->errorInfo()));
 			$row = $res->fetch(PDO::FETCH_ASSOC);
 			if ($cloneof) { // if this game is a clone ?>
 				<a href="?console=<?=$game_console?>&name=<?=$cloneof?>"><?=$cloneof?> : <?=$row['description']?> (<?=$row['year']?>)</a>
@@ -431,7 +431,7 @@ if ($add_in_mame <= 0.161) { // archives.org stop at v0.161 ?>
 <?php			if ($nb_brother_clones>0) { // and this clone has brothers ?>
 					<ul><span class="labels">Other clones</span>
 <?php 					$res = $database->prepare("SELECT name,description,year FROM games WHERE cloneof=? AND console=? ORDER BY year ASC,description ASC");
-						$res->execute(array($cloneof,$game_console)) or die("Unable to query database : ".array_pop($database->errorInfo()));
+						$res->execute([$cloneof,$game_console]) or die("Unable to query database : ".array_pop($database->errorInfo()));
 						while ($row = $res->fetch(PDO::FETCH_ASSOC)) { ?>
 							<li><a href="?console=<?=$game_console?>&name=<?=$row['name']?>"><?=$row['name']?> : <?=$row['description']?> (<?=$row['year']?>)</a></li>
 <?php					} ?>
@@ -444,7 +444,7 @@ if ($add_in_mame <= 0.161) { // archives.org stop at v0.161 ?>
 <?php 			if ($nb_child_clones>0) { // and this parent has clones ?>
 					<ul><span class="labels">Clones</span>
 <?php 					$res = $database->prepare("SELECT name,description,year FROM games WHERE cloneof=? AND console=? ORDER BY year ASC,description ASC");
-						$res->execute(array($game_name,$game_console)) or die("Unable to query database : ".array_pop($database->errorInfo()));
+						$res->execute([$game_name,$game_console]) or die("Unable to query database : ".array_pop($database->errorInfo()));
 						while ($row = $res->fetch(PDO::FETCH_ASSOC)) { ?>
 							<li><a href="?console=<?=$game_console?>&name=<?=$row['name']?>"><?=$row['name']?> : <?=$row['description']?> (<?=$row['year']?>)</a></li>
 <?php					} ?>
@@ -461,9 +461,9 @@ if ($add_in_mame <= 0.161) { // archives.org stop at v0.161 ?>
 <div id="sound_info" class="infos">
 <h2><a name="sound_info">Sound infos</a></h2>
 <?php
-	$fields = array('sound_channels'=>'INTEGER');
+	$fields = ['sound_channels'=>'INTEGER'];
 	$res = $database->prepare("SELECT ".join(',',array_keys($fields))." FROM games WHERE name=? AND console=?");
-	$res->execute(array($game_name,$game_console)) or die("Unable to query database : ".array_pop($database->errorInfo()));
+	$res->execute([$game_name,$game_console]) or die("Unable to query database : ".array_pop($database->errorInfo()));
 	$row = $res->fetch(PDO::FETCH_ASSOC);
 	foreach ($fields as $field_name => $field_type) {
 		if ($row[$field_name] != '') { // si qqchose a afficher ?>
@@ -483,9 +483,9 @@ if ($add_in_mame <= 0.161) { // archives.org stop at v0.161 ?>
 <?php if ($arcade_game) { ?>
 <div id="driver_info" class="infos">
 <h2><a name="driver_info">Driver infos</a></h2>
-<?php 	$fields = array('driver_status'=>'VARCHAR','driver_emulation'=>'VARCHAR','driver_color'=>'VARCHAR','driver_sound'=>'VARCHAR','driver_graphic'=>'VARCHAR','driver_cocktail'=>'VARCHAR','driver_protection'=>'VARCHAR','driver_savestate'=>'BOOL');
+<?php 	$fields = ['driver_status'=>'VARCHAR','driver_emulation'=>'VARCHAR','driver_color'=>'VARCHAR','driver_sound'=>'VARCHAR','driver_graphic'=>'VARCHAR','driver_cocktail'=>'VARCHAR','driver_protection'=>'VARCHAR','driver_savestate'=>'BOOL'];
 		$res = $database->prepare("SELECT ".join(',',array_keys($fields))." FROM games WHERE name=? AND console=?");
-		$res->execute(array($game_name,$game_console)) or die("Unable to query database : ".array_pop($database->errorInfo()));
+		$res->execute([$game_name,$game_console]) or die("Unable to query database : ".array_pop($database->errorInfo()));
 		$row = $res->fetch(PDO::FETCH_ASSOC);
 		foreach ($fields as $field_name => $field_type) { ?>
 			<div id="game_<?=$field_name?>" class="info">
@@ -502,9 +502,9 @@ if ($add_in_mame <= 0.161) { // archives.org stop at v0.161 ?>
 <?php if ($arcade_game) { ?>
 <div id="input_info" class="infos">
 <h2><a name="input_info">Inputs infos</a></h2>
-<?php	$fields = array('input_service'=>'BOOL','input_tilt'=>'BOOL','input_players'=>'INTEGER','input_buttons'=>'INTEGER','input_coins'=>'INTEGER');
+<?php	$fields = ['input_service'=>'BOOL','input_tilt'=>'BOOL','input_players'=>'INTEGER','input_buttons'=>'INTEGER','input_coins'=>'INTEGER'];
 		$res = $database->prepare("SELECT ".join(',',array_keys($fields))." FROM games WHERE name=? AND console=?");
-		$res->execute(array($game_name,$game_console)) or die("Unable to query database : ".array_pop($database->errorInfo()));
+		$res->execute([$game_name,$game_console]) or die("Unable to query database : ".array_pop($database->errorInfo()));
 		$row = $res->fetch(PDO::FETCH_ASSOC);
 		foreach ($fields as $field_name => $field_type) { ?>
 			<div id="game_<?=$field_name?>" class="info">
@@ -522,7 +522,7 @@ if ($add_in_mame <= 0.161) { // archives.org stop at v0.161 ?>
 <?php 
 	$fields = get_fields_info('games_control');
 	$res = $database->prepare("SELECT * FROM games_control WHERE game=?");
-	$res->execute(array($game_name)); ?>
+	$res->execute([$game_name]); ?>
 	<table>
 		<tr>
 <?php 	foreach ($fields as $field_name => $field_type) { ?>
@@ -547,7 +547,7 @@ if ($add_in_mame <= 0.161) { // archives.org stop at v0.161 ?>
 if ($arcade_game && $has_info['games_display']) {
 $fields = get_fields_info('games_display');
 $res = $database->prepare("SELECT * FROM games_display WHERE game=?");
-$res->execute(array($game_name)); ?>
+$res->execute([$game_name]); ?>
 <div id="display_info" class="infos">
 <h2><a name="display_info">Display infos</a></h2>
 <table>
@@ -573,7 +573,7 @@ $res->execute(array($game_name)); ?>
 if ($arcade_game && $has_info['games_configuration']) {
 	$fields = get_fields_info('games_configuration');
 	$res = $database->prepare("SELECT * FROM games_configuration WHERE game=?");
-	$res->execute(array($game_name)); ?>
+	$res->execute([$game_name]); ?>
 <div id="configuration_info" class="infos">
 <h2><a name="configuration_info">Configuration</a></h2>
 <table>
@@ -592,7 +592,7 @@ if ($arcade_game && $has_info['games_configuration']) {
 <?php		if ($i==0) { // 1er champ du tableau
 				$fields2 = get_fields_info('games_configuration_confsetting');
 				$res2 = $database->prepare("SELECT * FROM games_configuration_confsetting WHERE configuration_id=?");
-				$res2->execute(array($row['id']));
+				$res2->execute([$row['id']]);
 				while($row2 = $res2->fetch(PDO::FETCH_ASSOC)) { ?>
 					<div class="sousinfo">
 <?php					foreach ($fields2 as $field_name2 => $field_type2) { ?>
@@ -619,7 +619,7 @@ if ($arcade_game && $has_info['games_configuration']) {
 <?php
 if ($arcade_game && $has_info['games_dipswitch']) {
 	$res = $database->prepare("SELECT * FROM games_dipswitch WHERE game=?");
-	$res->execute(array($game_name)); ?>
+	$res->execute([$game_name]); ?>
 <div id="dipswitch_info" class="infos">
 <h2><a name="dipswitch_info">Dipswitchs</a></h2>
 	<ul>
@@ -628,7 +628,7 @@ if ($arcade_game && $has_info['games_dipswitch']) {
 			<?=$row['name']?>
 			<ul>
 <?php			$res2 = $database->prepare("SELECT * FROM games_dipswitch_dipvalue WHERE dipswitch_id=?");
-				$res2->execute(array($row['id']));
+				$res2->execute([$row['id']]);
 				while($row2 = $res2->fetch(PDO::FETCH_ASSOC)) { ?>
 					<li><?=$row2['name']?></li>
 <?php			} ?>
@@ -645,7 +645,7 @@ if ($arcade_game && $has_info['games_dipswitch']) {
 if ($arcade_game && $has_info['games_adjuster']) {
 	$fields = get_fields_info('games_adjuster');
 	$res = $database->prepare("SELECT * FROM games_adjuster WHERE game=?");
-	$res->execute(array($game_name)); ?>
+	$res->execute([$game_name]); ?>
 <div id="adjuster_info" class="infos">
 <h2><a name="adjuster_info">Adjusters</a></h2>
 <table>
@@ -671,7 +671,7 @@ if ($arcade_game && $has_info['games_adjuster']) {
 <div id="software_info" class="infos">
 <h2><a name="software_info">Software Infos</a></h2>
 <?php	$res = $database->prepare("SELECT name,value FROM software_info WHERE type='info' AND game=? AND console=?");
-		$res->execute(array($game_name,$game_console)) or die("Unable to query database : ".array_pop($database->errorInfo()));
+		$res->execute([$game_name,$game_console]) or die("Unable to query database : ".array_pop($database->errorInfo()));
 		while ($row = $res->fetch(PDO::FETCH_ASSOC)) { ?>
 			<div id="game_software_info_<?=$row['name']?>" class="info">
 				<span class="labels"><?=ucfirst($row['name'])?></span>
@@ -687,7 +687,7 @@ if ($arcade_game && $has_info['games_adjuster']) {
 <div id="feature_info" class="infos">
 <h2><a name="feature_info">Feature Infos</a></h2>
 <?php	$res = $database->prepare("SELECT name,value FROM software_info WHERE type='feature' AND game=? AND console=?");
-		$res->execute(array($game_name,$game_console)) or die("Unable to query database : ".array_pop($database->errorInfo()));
+		$res->execute([$game_name,$game_console]) or die("Unable to query database : ".array_pop($database->errorInfo()));
 		while ($row = $res->fetch(PDO::FETCH_ASSOC)) { ?>
 			<div id="game_software_info_<?=$row['name']?>" class="info">
 				<span class="labels"><?=ucfirst($row['name'])?></span>
@@ -703,7 +703,7 @@ if ($arcade_game && $has_info['games_adjuster']) {
 if ($has_info['games_rom']) {
 	$fields = get_fields_info('games_rom');
 	$res = $database->prepare("SELECT * FROM games_rom WHERE game=? and console=?");
-	$res->execute(array($game_name,$game_console)); ?>
+	$res->execute([$game_name,$game_console]); ?>
 <div id="rom_info" class="infos">
 <h2><a name="rom_list">Roms list</a></h2>
 <table>
@@ -729,7 +729,7 @@ if ($has_info['games_rom']) {
 if ($arcade_game && $has_info['games_biosset']) {
 	$fields = get_fields_info('games_biosset');
 	$res = $database->prepare("SELECT * FROM games_biosset WHERE game=?");
-	$res->execute(array($game_name)); ?>
+	$res->execute([$game_name]); ?>
 <div id="biosset_list" class="infos">
 <h2><a name="biosset_list">BIOS set</a></h2>
 <table>
@@ -755,7 +755,7 @@ if ($arcade_game && $has_info['games_biosset']) {
 if ($arcade_game && $has_info['games_chip']) {
 	$fields = get_fields_info('games_chip');
 	$res = $database->prepare("SELECT * FROM games_chip WHERE game=?");
-	$res->execute(array($game_name)); ?>
+	$res->execute([$game_name]); ?>
 <div id="chip_info" class="infos">
 <h2><a name="chip_list">Chips list</a></h2>
 <table>
@@ -781,7 +781,7 @@ if ($arcade_game && $has_info['games_chip']) {
 if ($arcade_game && $has_info['games_sample']) {
 	$fields = get_fields_info('games_sample');
 	$res = $database->prepare("SELECT * FROM games_sample WHERE game=?");
-	$res->execute(array($game_name)); ?>
+	$res->execute([$game_name]); ?>
 <div id="sample_info" class="infos">
 <h2><a name="sample_list">Samples list</a></h2>
 <table>
@@ -807,7 +807,7 @@ if ($arcade_game && $has_info['games_sample']) {
 if ($arcade_game && $has_info['games_disk']) {
 	$fields = get_fields_info('games_disk');
 	$res = $database->prepare("SELECT * FROM games_disk WHERE game=?");
-	$res->execute(array($game_name)); ?>
+	$res->execute([$game_name]); ?>
 <div id="disk_info" class="infos">
 <h2><a name="disk_list">Disks list</a></h2>
 <table>
@@ -832,7 +832,7 @@ if ($arcade_game && $has_info['games_disk']) {
 <?php
 if ($arcade_game && $has_info['games_series']) {
 	$res = $database->prepare("SELECT * FROM games_series GS,series S WHERE GS.game=? AND GS.serie_id=S.id");
-	$res->execute(array($game_name));
+	$res->execute([$game_name]);
 	$row = $res->fetch(PDO::FETCH_ASSOC);
 ?>
 <div id="serie_info" class="infos">
@@ -841,7 +841,7 @@ if ($arcade_game && $has_info['games_series']) {
 	<ol class="series">
 <?php
 $res = $database->prepare("SELECT G.description,G.name,G.year FROM games_series GS, games G WHERE GS.game=G.name AND GS.serie_id=? ORDER BY G.year ASC");
-$res->execute(array($row['id']));
+$res->execute([$row['id']]);
 while($row = $res->fetch(PDO::FETCH_ASSOC)) { ?>
 		<li>
 <?php	if ($row['name']==$game_name) { // this game ?>
@@ -860,7 +860,7 @@ while($row = $res->fetch(PDO::FETCH_ASSOC)) { ?>
 <?php
 if ($arcade_game && $has_info['categories']) {
 	$res = $database->prepare("SELECT * FROM categories WHERE game=? ORDER BY version_added DESC");
-	$res->execute(array($game_name)); ?>
+	$res->execute([$game_name]); ?>
 <div id="categories_info" class="infos">
 <h2><a name="categories_info">Categories</a></h2>
 	<ul class="categories">
@@ -880,7 +880,7 @@ if ($arcade_game && $has_info['categories']) {
 <?php
 if ($arcade_game && $has_info['mameinfo']) {
 	$res = $database->prepare("SELECT * FROM mameinfo WHERE game=?");
-	$res->execute(array($game_name)); ?>
+	$res->execute([$game_name]); ?>
 <div id="mameinfo_info" class="infos">
 <h2><a name="mameinfo_info">MAMEinfo</a></h2>
 <?php while($row = $res->fetch(PDO::FETCH_ASSOC)) {
@@ -894,7 +894,7 @@ if ($arcade_game && $has_info['mameinfo']) {
 <?php
 if ($arcade_game && $has_info['games_histories']) {
 	$res = $database->prepare("SELECT * FROM games_histories GH,histories H WHERE GH.game=? AND GH.history_id=H.id");
-	$res->execute(array($game_name)); ?>
+	$res->execute([$game_name]); ?>
 <div id="stories_info" class="infos">
 <h2><a name="stories_info">History</a></h2>
 <?php $row = $res->fetch(PDO::FETCH_ASSOC) ?>
@@ -910,7 +910,7 @@ if ($arcade_game && $has_info['games_histories']) {
 <?php
 if ($arcade_game && $has_info['games_command']) {
 	$res = $database->prepare("SELECT * FROM games_command GC,command C WHERE GC.game=? and GC.command_id=C.id");
-	$res->execute(array($game_name)); ?>
+	$res->execute([$game_name]); ?>
 <div id="command_list" class="infos">
 <h2><a name="command_list">Commands list</a></h2>
 <?php while($row = $res->fetch(PDO::FETCH_ASSOC)) { ?>
@@ -947,7 +947,7 @@ if ($arcade_game && $has_info['games_command']) {
 <?php
 if ($arcade_game && $has_info['cheats']) {
 	$res = $database->prepare("SELECT * FROM cheats WHERE game=?");
-	$res->execute(array($game_name)); ?>
+	$res->execute([$game_name]); ?>
 <div id="cheats_list" class="infos">
 <h2><a name="cheats_list">Cheats</a></h2>
 	<ul>
@@ -957,7 +957,7 @@ if ($arcade_game && $has_info['cheats']) {
 			<?=$row['cheat']?>
 			<ul>
 <?php			$res2 = $database->prepare("SELECT * FROM cheats_options WHERE cheat_id=?");
-				$res2->execute(array($row['id']));
+				$res2->execute([$row['id']]);
 				while($row2 = $res2->fetch(PDO::FETCH_ASSOC)) { ?>
 					<li><?=$row2['option']?></li>
 <?php			} ?>
@@ -974,7 +974,7 @@ if ($arcade_game && $has_info['cheats']) {
 <?php
 if ($arcade_game && $has_info['stories']) {
 	$res = $database->prepare("SELECT * FROM stories WHERE game=?");
-	$res->execute(array($game_name)); ?>
+	$res->execute([$game_name]); ?>
 <div id="highscore_info" class="infos">
 <h2><a name="highscore_info">High scores</a></h2>
 <?php while($row = $res->fetch(PDO::FETCH_ASSOC)) { ?>

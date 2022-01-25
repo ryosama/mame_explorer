@@ -21,7 +21,7 @@ function load_database() {
 function get_fields_info($table_name) {
 	global $database ;
 	$res = $database->query("PRAGMA table_info('$table_name')") or die("Unable to query database : ".array_pop($database->errorInfo()));
-	$fields = array();
+	$fields = [];
 	while($row = $res->fetch(PDO::FETCH_ASSOC)) {
 		if ($row['name'] == 'game' || $row['name'] == 'id' || preg_match('/_id$/',$row['name'])) continue;
 		$fields[$row['name']] = $row['type'];
@@ -35,20 +35,20 @@ function bool2yesno($bool) {
 
 function game_has_info($game,$game_type) {
 	global $database;
-	$has_info = array(
+	$has_info = [
 		'games_configuration'=>'','games_control'=>'','games_display'=>'','games_dipswitch'=>'','games_adjuster'=>'',
 		'games_rom'=>'','games_biosset'=>'','games_chip'=>'','games_sample'=>'','games_disk'=>'','games_series'=>'','categories'=>'',
 		'mameinfo'=>'','games_histories'=>'','games_command'=>'','cheats'=>'','stories'=>'','bestgames'=>'','languages'=>'','nplayers'=>'','mature'=>'','genre'=>''
-	);
+	];
 
 	if ($game_type == 'arcade') {
-		$informations = array(
+		$informations = [
 			'games_configuration','games_control','games_display','games_dipswitch','games_adjuster',
 			'games_rom','games_biosset','games_chip','games_sample','games_disk','games_series','categories',
 			'mameinfo','games_histories','games_command','cheats','stories','bestgames','games_languages','nplayers','mature','genre'
-		);
+		];
 	} else {
-		$informations = array('games_rom');
+		$informations = ['games_rom'];
 	}
 
 	foreach ($informations as $table) {
@@ -56,12 +56,12 @@ function game_has_info($game,$game_type) {
 
 		// check if table exists
 		$res = $database->prepare("SELECT count(*) as table_exists FROM sqlite_master WHERE type='table' AND name=?");
-		$res->execute(array($table));
+		$res->execute([$table]);
 		$row = $res->fetch(PDO::FETCH_ASSOC);
 
 		if ($row['table_exists']) {
 			$res = $database->prepare("SELECT count(*) as has_info FROM $table WHERE game=?") or die("Can't prepare : ".array_pop($database->errorInfo()));
-			if ($res->execute(array($game))) {
+			if ($res && $res->execute([$game])) {
 				$row = $res->fetch(PDO::FETCH_ASSOC);
 				$has_info[$table] = $row['has_info'];
 			}
@@ -73,7 +73,7 @@ function game_has_info($game,$game_type) {
 
 
 function reset_session_except() {
-	static $criterias = array('sourcefile','nplayers','categorie','language','evaluation','mature','genre','console'); // all criterias
+	static $criterias = ['sourcefile','nplayers','categorie','language','evaluation','mature','genre','console']; // all criterias
 	$except_criterias = func_get_args(); // do not reset thoses criterias
     for ($i=0; $i < sizeof($criterias) ; $i++) {
     	if (!in_array($criterias[$i],$except_criterias))
@@ -98,5 +98,3 @@ function HumanReadableFilesize($size) {
 	}
 	return round($size, 2) . ' ' . $units[$i];
 }
-
-?>

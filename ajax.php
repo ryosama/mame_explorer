@@ -8,21 +8,24 @@ $database = load_database();
 /////////// GET A MANUFACTURER LIST BASE ON KEYBOARD TYPPING ///////////////
 if (	isset($_GET['what']) && $_GET['what']=='get_manufacturer'
 	&& 	isset($_GET['val']) && strlen($_GET['val'])>0) {
-	$results = array();
+	$results = [];
 
 	$sql = "SELECT DISTINCT(manufacturer) as manufacturer FROM games WHERE manufacturer like ? AND manufacturer IS NOT NULL AND manufacturer<>'' and manufacturer NOT LIKE '<%>' ORDER BY manufacturer ASC";
 
 	$res = $database->prepare($sql);
-	$res->execute(array('%'.$_GET['val'].'%')) or die("Unable to select manufacturer : ".array_pop($database->errorInfo()));
+	$res->execute(['%'.$_GET['val'].'%']) or die("Unable to select manufacturer : ".array_pop($database->errorInfo()));
 	while($row = $res->fetch(PDO::FETCH_ASSOC))
 		$results[] = $row['manufacturer'];
 
 	header('Content-type: text/json');
 	header('Content-type: application/json');
-	echo json_encode(array(	'response'=> array( 'manufacturers' => $results),
-							'request' => array(	'what'			=> $_GET['what'],
-												'val'			=> $_GET['val'])
-			));
+	echo json_encode(
+		['response'=> [ 'manufacturers' => $results ],
+		 'request' => [
+			'what' => $_GET['what'],
+			'val'  => $_GET['val']
+		]
+	]);
 
 
 
@@ -65,16 +68,21 @@ if (	isset($_GET['what']) && $_GET['what']=='get_manufacturer'
 	}
 
 	header('Content-type: text/json');
-	echo json_encode(array(	'response'=> array( 'video_found'	=> $video_found,
-												'video_id'		=> $video_id,
-												'video_title'	=> $video_title,
-												'video_website' => $video_website,
-												'video_url'		=> $video_url,
-												'video_html'	=> $video_html),
+	echo json_encode([
+		'response'=> [
+			'video_found'	=> $video_found,
+			'video_id'		=> $video_id,
+			'video_title'	=> $video_title,
+			'video_website' => $video_website,
+			'video_url'		=> $video_url,
+			'video_html'	=> $video_html
+		],
 
-							'request' => array(	'what'			=> $_GET['what'],
-												'game'			=> $_GET['game'])
-			));
+		'request' => [
+			'what'			=> $_GET['what'],
+			'game'			=> $_GET['game']
+		]
+	]);
 
 
 } else {
