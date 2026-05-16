@@ -3,7 +3,7 @@ session_start();
 
 include_once('config.php');
 
-function load_database() {
+function load_database() : PDO {
 	if (file_exists(DATABASE_FILENAME)) {
 		try {
 			$sqlite = new PDO('sqlite:'.DATABASE_FILENAME); // success
@@ -18,7 +18,7 @@ function load_database() {
 } // end function load_database
 
 
-function get_fields_info($table_name) {
+function get_fields_info(string $table_name) : array {
 	global $database ;
 	$res = $database->query("PRAGMA table_info('$table_name')") or die("Unable to query database : ".array_pop($database->errorInfo()));
 	$fields = [];
@@ -29,11 +29,11 @@ function get_fields_info($table_name) {
 	return $fields;
 }
 
-function bool2yesno($bool) {
+function bool2yesno(bool $bool) : string {
 	return $bool ? 'yes' : 'no';
 }
 
-function game_has_info($game,$game_type) {
+function game_has_info(string $game, string $game_type) : array {
 	global $database;
 	$has_info = [
 		'games_configuration'=>'','games_control'=>'','games_display'=>'','games_dipswitch'=>'','games_adjuster'=>'',
@@ -72,7 +72,7 @@ function game_has_info($game,$game_type) {
 }
 
 
-function reset_session_except() {
+function reset_session_except() : void {
 	static $criterias = ['sourcefile','nplayers','categorie','language','evaluation','mature','genre','console']; // all criterias
 	$except_criterias = func_get_args(); // do not reset thoses criterias
     for ($i=0; $i < sizeof($criterias) ; $i++) {
@@ -90,7 +90,7 @@ function reset_session_except() {
  * @version     0.3
  * @link        http://www.jonasjohn.de/snippets/php/readable-filesize.htm
  */
-function HumanReadableFilesize($size) {
+function HumanReadableFilesize(?int $size) : string {
 	$mod = 1024;
 	$units = explode(' ','B KB MB GB TB PB');
 	for ($i = 0; $size > $mod; $i++) {

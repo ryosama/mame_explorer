@@ -5,15 +5,28 @@ include_once('inc/config.php');
 include_once('inc/functions.php');
 $database = load_database();
 
+if (isset($_GET['what']))
+switch ($_GET['what']) {
+	case 'get_manufacturer' : get_manufacturer(isset($_GET['val']) ? $_GET['val']:'') ; break;
+	case 'get_video' 		: get_video(isset($_GET['game']) ? $_GET['game']:'') ; break;
+	default 				: error() ; break;
+} else {
+	error("Undefined action");
+}
+
+
 /////////// GET A MANUFACTURER LIST BASE ON KEYBOARD TYPPING ///////////////
-if (	isset($_GET['what']) && $_GET['what']=='get_manufacturer'
-	&& 	isset($_GET['val']) && strlen($_GET['val'])>0) {
+function get_manufacturer(string $val) : void {
+	global $database;
+	if (strlen($val)<=0)
+		error("Undefined value for get_manufacturer");
+		
 	$results = [];
 
 	$sql = "SELECT DISTINCT(manufacturer) as manufacturer FROM games WHERE manufacturer like ? AND manufacturer IS NOT NULL AND manufacturer<>'' and manufacturer NOT LIKE '<%>' ORDER BY manufacturer ASC";
 
 	$res = $database->prepare($sql);
-	$res->execute(['%'.$_GET['val'].'%']) or die("Unable to select manufacturer : ".array_pop($database->errorInfo()));
+	$res->execute(['%'.$val.'%']) or die("Unable to select manufacturer : ".array_pop($database->errorInfo()));
 	while($row = $res->fetch(PDO::FETCH_ASSOC))
 		$results[] = $row['manufacturer'];
 
@@ -22,18 +35,17 @@ if (	isset($_GET['what']) && $_GET['what']=='get_manufacturer'
 	echo json_encode(
 		['response'=> [ 'manufacturers' => $results ],
 		 'request' => [
-			'what' => $_GET['what'],
-			'val'  => $_GET['val']
+			'what' => 'get_manufacturer',
+			'val'  => $val,
 		]
 	]);
-
+}
 
 
 /////////// SEARCH ON VIDEO WEB SITE FOR VIDEO ABOUT A GAME ///////////////
-} elseif (	isset($_GET['what']) && $_GET['what']=='get_video'
-		&& 	isset($_GET['game']) && strlen($_GET['game'])>0) {
-
-	$game = $_GET['game'];
+function get_video(string $game) : void {
+	if (strlen($game)<=0)
+		error("Undefined game for get_video");
 
 	// search on youtube with thoses terms : mame gameplay video snapshot rom name <game_name>
 	// only search for parents
@@ -79,13 +91,15 @@ if (	isset($_GET['what']) && $_GET['what']=='get_manufacturer'
 		],
 
 		'request' => [
-			'what'			=> $_GET['what'],
-			'game'			=> $_GET['game']
+			'what'			=> 'get_video',
+			'game'			=> $game,
 		]
 	]);
+}
 
-
-} else {
+// erreur quelques part
+function error(string $error) : void {
 	header('Content-type: text/text');
-	echo "No valide action";
+	echo "No valid action : $error";
+	exit;
 }
