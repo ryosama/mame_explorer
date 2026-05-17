@@ -21,7 +21,7 @@ Demo http://78.213.180.135:5080/mame
 ---------------
 It's a responsive web interface (PHP / Perl / SQLite) to retrieve all informations about MAME roms.
 
-Demo http://78.213.180.135:5080/mame
+Demo http://ryosama.myftp.org/mame
 
 ![Screenshot](https://raw.githubusercontent.com/ryosama/mame_explorer/master/images/screenshot_desktop.jpg?raw=true "Screenshot") ![Screenshot on mobile device](https://raw.githubusercontent.com/ryosama/mame_explorer/master/images/screenshot_phone.jpg?raw=true "Screenshot on mobile device")
 
